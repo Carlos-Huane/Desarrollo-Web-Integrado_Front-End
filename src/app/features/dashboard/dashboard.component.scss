@@ -34,6 +34,7 @@
 
   &--nuevo       { border-left-color: v.$estado-nuevo; }
   &--en-atencion { border-left-color: v.$estado-en-atencion; }
+  &--escalado    { border-left-color: v.$estado-escalado; }
   &--resuelto    { border-left-color: v.$estado-resuelto; }
   &--cerrado     { border-left-color: v.$estado-cerrado; }
   &--info        { border-left-color: v.$color-info; }
@@ -56,4 +57,12 @@
 
   h3 { margin: 0 0 12px; color: v.$color-primary-dark; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
   &__body { height: 280px; }
+  &--wide { grid-column: 1 / -1; }
+}
+
+.tabla {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+  th, td { padding: 10px 12px; border-bottom: 1px solid v.$color-border; text-align: left; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v.$color-text-soft; background: #f8fafc; }
+  tr:last-child td { border-bottom: none; }
 }

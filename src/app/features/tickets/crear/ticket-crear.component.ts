@@ -118,7 +118,7 @@ export class TicketCrearComponent implements OnInit {
 
   enviar(): void {
     const sesion = this.auth.sesion();
-    if (this.form.invalid || !sesion?.id) return;
+    if (this.form.invalid || !sesion) return;
 
     this.enviando.set(true);
     const v = this.form.getRawValue();

@@ -45,4 +45,16 @@ export class CategoriaService {
   crearSubcategoria(req: SubcategoriaRequest): Observable<Subcategoria> {
     return this.http.post<Subcategoria>(`${this.url}/subcategorias`, req);
   }
+
+  actualizarSubcategoria(id: number, req: SubcategoriaRequest): Observable<Subcategoria> {
+    return this.http.put<Subcategoria>(`${this.url}/subcategorias/${id}`, req);
+  }
+
+  activarSubcategoria(id: number): Observable<Subcategoria> {
+    return this.http.patch<Subcategoria>(`${this.url}/subcategorias/${id}/activar`, {});
+  }
+
+  desactivarSubcategoria(id: number): Observable<Subcategoria> {
+    return this.http.patch<Subcategoria>(`${this.url}/subcategorias/${id}/desactivar`, {});
+  }
 }

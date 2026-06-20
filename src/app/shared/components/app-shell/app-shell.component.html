@@ -1,4 +1,8 @@
-<div class="shell">
+<div class="shell" [class.shell--open]="sidebarAbierto()">
+  @if (sidebarAbierto()) {
+    <div class="shell__backdrop" (click)="cerrarSidebar()"></div>
+  }
+
   <aside class="shell__sidebar">
     <div class="shell__brand">
       <span class="shell__brand-mark">TP</span>
@@ -23,6 +27,13 @@
 
   <div class="shell__main">
     <header class="shell__topbar">
+      <button type="button"
+              class="shell__toggle"
+              (click)="toggleSidebar()"
+              aria-label="Abrir menú">
+        ☰
+      </button>
+
       <div class="shell__topbar-user">
         <strong>{{ auth.sesion()?.nombreCompleto }}</strong>
         <small>{{ auth.sesion()?.email }} · {{ auth.sesion()?.rol }}</small>

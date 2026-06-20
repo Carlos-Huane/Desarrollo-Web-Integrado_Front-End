@@ -45,6 +45,7 @@ export class AuthService {
   private guardarSesion(res: LoginResponse): void {
     localStorage.setItem(environment.tokenKey, res.token);
     const sesion: SesionUsuario = {
+      id: res.id,
       email: res.email,
       rol: res.rol,
       nombreCompleto: res.nombreCompleto

@@ -1,6 +1,7 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 
 export interface NavItem {
@@ -18,10 +19,20 @@ export interface NavItem {
 })
 export class AppShellComponent {
   protected auth = inject(AuthService);
+  private router = inject(Router);
+
   readonly titulo = input.required<string>();
   readonly navItems = input.required<NavItem[]>();
 
-  cerrarSesion(): void {
-    this.auth.logout();
+  sidebarAbierto = signal(false);
+
+  constructor() {
+    this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.sidebarAbierto.set(false));
   }
+
+  toggleSidebar(): void { this.sidebarAbierto.update(v => !v); }
+  cerrarSidebar(): void { this.sidebarAbierto.set(false); }
+  cerrarSesion():  void { this.auth.logout(); }
 }

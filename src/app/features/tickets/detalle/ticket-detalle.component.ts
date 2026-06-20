@@ -2,19 +2,23 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { EstadoLabelPipe } from '../../../shared/pipes/estado-label.pipe';
+import { BadgeClassPipe } from '../../../shared/pipes/badge-class.pipe';
+import { PrioridadLabelPipe } from '../../../shared/pipes/prioridad-label.pipe';
 import { forkJoin } from 'rxjs';
 import { TicketService } from '../../../core/services/ticket.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { ComentarioService } from '../../../core/services/comentario.service';
 import { NotificacionService } from '../../../core/services/notificacion.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { HistorialTicket, Ticket } from '../../../core/models/ticket.model';
+import { ComentarioTicket, HistorialTicket, Ticket } from '../../../core/models/ticket.model';
 import { Usuario } from '../../../core/models/usuario.model';
 import { ESTADOS, Estado } from '../../../core/models/estado.enum';
 
 @Component({
   selector: 'app-ticket-detalle',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EstadoLabelPipe, BadgeClassPipe, PrioridadLabelPipe],
   template: `
     @if (ticket(); as t) {
       <section class="page">
@@ -50,7 +54,7 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
               <form [formGroup]="form" (ngSubmit)="enviar()" class="form">
                 <label>
                   <span>Nuevo estado</span>
-                  <select formControlName="nuevoEstado">
+                  <select formControlName="estadoNuevo">
                     @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
                   </select>
                 </label>
@@ -86,6 +90,41 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
           }
 
           <article class="card card--wide">
+            <h3>Comentarios</h3>
+
+            <form [formGroup]="formComentario" (ngSubmit)="enviarComentario()" class="comentario-form">
+              <textarea formControlName="mensaje" rows="2" placeholder="Escribe un comentario…"></textarea>
+              <div class="comentario-form__actions">
+                @if (puedeComentarInterno()) {
+                  <label class="check">
+                    <input type="checkbox" formControlName="interno" /> Comentario interno (solo equipo)
+                  </label>
+                }
+                <button type="submit" [disabled]="formComentario.invalid || enviandoComentario()">
+                  {{ enviandoComentario() ? 'Enviando…' : 'Comentar' }}
+                </button>
+              </div>
+            </form>
+
+            @if (comentarios().length === 0) {
+              <p class="placeholder">Sin comentarios todavía.</p>
+            } @else {
+              <ul class="comentarios">
+                @for (c of comentarios(); track c.id) {
+                  <li [class.interno]="c.interno">
+                    <header>
+                      <strong>{{ c.autor.nombre }} {{ c.autor.apellido }}</strong>
+                      <span>{{ c.createdAt | date:'short' }}</span>
+                      @if (c.interno) { <span class="tag-interno">interno</span> }
+                    </header>
+                    <p>{{ c.mensaje }}</p>
+                  </li>
+                }
+              </ul>
+            }
+          </article>
+
+          <article class="card card--wide">
             <h3>Historial</h3>
             @if (historial().length === 0) {
               <p class="placeholder">Sin eventos registrados</p>
@@ -93,8 +132,8 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
               <ol class="timeline">
                 @for (h of historial(); track h.id) {
                   <li>
-                    <strong>{{ h.estadoNuevo }}</strong>
-                    <span>{{ h.fechaCambio | date:'short' }} · {{ h.usuario.nombre }}</span>
+                    <strong>{{ h.estadoNuevo | estadoLabel }}</strong>
+                    <span>{{ h.createdAt | date:'short' }} · {{ h.usuario.nombre }} {{ h.usuario.apellido }}</span>
                     @if (h.comentario) { <p>{{ h.comentario }}</p> }
                   </li>
                 }
@@ -133,11 +172,28 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
     .timeline span { color: #94a3b8; font-size: 12px; }
     .timeline p { margin: 4px 0 0; font-size: 13px; color: #475569; }
     .placeholder { color: #94a3b8; font-style: italic; }
+
+    .comentario-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .comentario-form textarea { padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical; }
+    .comentario-form__actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .comentario-form__actions button { padding: 8px 16px; background: #1e40af; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
+      &:disabled { background: #94a3b8; cursor: not-allowed; } }
+    .check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; }
+
+    .comentarios { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .comentarios li { background: #f8fafc; padding: 10px 14px; border-radius: 6px; border-left: 3px solid #1e40af; }
+    .comentarios li.interno { background: #fef9c3; border-left-color: #f59e0b; }
+    .comentarios header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+    .comentarios header strong { color: #0f172a; }
+    .comentarios header span { color: #94a3b8; font-size: 11px; }
+    .tag-interno { background: #f59e0b; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .comentarios p { margin: 0; color: #475569; font-size: 13px; line-height: 1.5; }
   `]
 })
 export class TicketDetalleComponent implements OnInit {
   private srv = inject(TicketService);
   private usrSrv = inject(UsuarioService);
+  private comentarioSrv = inject(ComentarioService);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -148,13 +204,20 @@ export class TicketDetalleComponent implements OnInit {
   ticket = signal<Ticket | null>(null);
   historial = signal<HistorialTicket[]>([]);
   tecnicos = signal<Usuario[]>([]);
+  comentarios = signal<ComentarioTicket[]>([]);
   cargando = signal(true);
   guardando = signal(false);
+  enviandoComentario = signal(false);
 
   form = this.fb.nonNullable.group({
-    nuevoEstado: ['EN_ATENCION' as Estado, Validators.required],
+    estadoNuevo: ['EN_ATENCION' as Estado, Validators.required],
     tecnicoId:   [null as number | null],
     comentario:  ['']
+  });
+
+  formComentario = this.fb.nonNullable.group({
+    mensaje: ['', Validators.required],
+    interno: [false]
   });
 
   puedeAsignar(): boolean {
@@ -166,33 +229,69 @@ export class TicketDetalleComponent implements OnInit {
     return r === 'ADMIN' || r === 'TECNICO';
   }
 
+  puedeComentarInterno(): boolean {
+    const r = this.auth.rol();
+    return r === 'ADMIN' || r === 'TECNICO';
+  }
+
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    const incluirInternos = this.puedeComentarInterno();
+
     forkJoin({
       t: this.srv.porId(id),
       h: this.srv.historial(id),
-      tec: this.usrSrv.listarTecnicos()
-    }).subscribe(({ t, h, tec }) => {
-      this.ticket.set(t);
-      this.historial.set(h);
-      this.tecnicos.set(tec);
-      this.form.patchValue({
-        nuevoEstado: t.estado,
-        tecnicoId: t.tecnico?.id ?? null
-      });
-      this.cargando.set(false);
+      tec: this.usrSrv.listarTecnicos(),
+      com: this.comentarioSrv.porTicket(id, incluirInternos)
+    }).subscribe({
+      next: ({ t, h, tec, com }) => {
+        this.ticket.set(t);
+        this.historial.set(h);
+        this.tecnicos.set(tec);
+        this.comentarios.set(com);
+        this.form.patchValue({
+          estadoNuevo: t.estado,
+          tecnicoId: t.tecnico?.id ?? null
+        });
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.cargando.set(false);
+        this.notif.error('No se pudo cargar el ticket');
+      }
+    });
+  }
+
+  enviarComentario(): void {
+    const t = this.ticket();
+    const sesion = this.auth.sesion();
+    if (!t || !sesion || this.formComentario.invalid) return;
+
+    this.enviandoComentario.set(true);
+    const v = this.formComentario.getRawValue();
+    this.comentarioSrv.crear(t.id, sesion.id, { mensaje: v.mensaje, interno: v.interno }).subscribe({
+      next: nuevo => {
+        this.comentarios.update(arr => [...arr, nuevo]);
+        this.formComentario.reset({ mensaje: '', interno: false });
+        this.enviandoComentario.set(false);
+        this.notif.success('Comentario agregado');
+      },
+      error: () => {
+        this.enviandoComentario.set(false);
+        this.notif.error('No se pudo agregar el comentario');
+      }
     });
   }
 
   enviar(): void {
     const t = this.ticket();
     const sesion = this.auth.sesion();
-    if (!t || !sesion?.id) return;
+    if (!t || !sesion) return;
 
     this.guardando.set(true);
     const v = this.form.getRawValue();
     this.srv.cambiarEstado(t.id, sesion.id, {
-      nuevoEstado: v.nuevoEstado,
+      estadoNuevo: v.estadoNuevo,
       tecnicoId: v.tecnicoId ?? undefined,
       comentario: v.comentario || undefined
     }).subscribe({

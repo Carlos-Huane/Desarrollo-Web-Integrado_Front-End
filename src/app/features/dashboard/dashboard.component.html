@@ -6,47 +6,60 @@
 
   @if (cargando()) {
     <p class="placeholder">Cargando indicadores…</p>
-  } @else {
+  }
+  @if (!cargando() && resumen(); as r) {
     <div class="kpis">
-      <article class="kpi">
-        <span class="kpi__label">Total tickets</span>
-        <strong class="kpi__value">{{ totalTickets() }}</strong>
-      </article>
-      <article class="kpi kpi--nuevo">
-        <span class="kpi__label">Nuevos</span>
-        <strong class="kpi__value">{{ totalNuevos() }}</strong>
-      </article>
-      <article class="kpi kpi--en-atencion">
-        <span class="kpi__label">En atención</span>
-        <strong class="kpi__value">{{ totalEnAtencion() }}</strong>
-      </article>
-      <article class="kpi kpi--resuelto">
-        <span class="kpi__label">Resueltos</span>
-        <strong class="kpi__value">{{ totalResueltos() }}</strong>
-      </article>
-      <article class="kpi kpi--cerrado">
-        <span class="kpi__label">Cerrados</span>
-        <strong class="kpi__value">{{ totalCerrados() }}</strong>
-      </article>
+      <article class="kpi"><span class="kpi__label">Total tickets</span><strong class="kpi__value">{{ r.totalTickets }}</strong></article>
+      <article class="kpi kpi--nuevo"><span class="kpi__label">Nuevos</span><strong class="kpi__value">{{ r.ticketsNuevos }}</strong></article>
+      <article class="kpi kpi--en-atencion"><span class="kpi__label">En atención</span><strong class="kpi__value">{{ r.ticketsEnAtencion }}</strong></article>
+      <article class="kpi kpi--escalado"><span class="kpi__label">Escalados</span><strong class="kpi__value">{{ r.ticketsEscalados }}</strong></article>
+      <article class="kpi kpi--resuelto"><span class="kpi__label">Resueltos</span><strong class="kpi__value">{{ r.ticketsResueltos }}</strong></article>
+      <article class="kpi kpi--cerrado"><span class="kpi__label">Cerrados</span><strong class="kpi__value">{{ r.ticketsCerrados }}</strong></article>
+      <article class="kpi kpi--info"><span class="kpi__label">Técnicos</span><strong class="kpi__value">{{ r.totalTecnicos }}</strong></article>
+      <article class="kpi kpi--info"><span class="kpi__label">Clientes</span><strong class="kpi__value">{{ r.totalClientes }}</strong></article>
       <article class="kpi kpi--info">
-        <span class="kpi__label">Técnicos activos</span>
-        <strong class="kpi__value">{{ totalTecnicos() }}</strong>
+        <span class="kpi__label">⌀ Resolución</span>
+        <strong class="kpi__value">
+          {{ r.tiempoPromedioResolucionHoras == null ? '—' : ((r.tiempoPromedioResolucionHoras | number:'1.0-1') + ' h') }}
+        </strong>
       </article>
     </div>
 
     <div class="charts">
       <article class="chart-card">
         <h3>Tickets por estado</h3>
-        <div class="chart-card__body">
-          <app-chart-canvas [config]="graficoEstado()" />
-        </div>
+        <div class="chart-card__body"><app-chart-canvas [config]="graficoEstado()" /></div>
       </article>
 
       <article class="chart-card">
         <h3>Tickets por prioridad</h3>
-        <div class="chart-card__body">
-          <app-chart-canvas [config]="graficoPrioridad()" />
-        </div>
+        <div class="chart-card__body"><app-chart-canvas [config]="graficoPrioridad()" /></div>
+      </article>
+
+      <article class="chart-card chart-card--wide">
+        <h3>Tickets por categoría</h3>
+        <div class="chart-card__body"><app-chart-canvas [config]="graficoCategoria()" /></div>
+      </article>
+
+      <article class="chart-card chart-card--wide">
+        <h3>Top 5 técnicos por tickets resueltos</h3>
+        @if (topTecnicos().length === 0) {
+          <p class="placeholder">Aún no hay tickets resueltos.</p>
+        } @else {
+          <table class="tabla">
+            <thead><tr><th>#</th><th>Técnico</th><th>Resueltos</th><th>⌀ Tiempo (h)</th></tr></thead>
+            <tbody>
+              @for (t of topTecnicos(); track t.tecnicoId; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ t.nombreCompleto }}</td>
+                  <td><strong>{{ t.ticketsResueltos }}</strong></td>
+                  <td>{{ t.tiempoPromedioHoras !== null ? (t.tiempoPromedioHoras | number:'1.0-1') : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </article>
     </div>
   }

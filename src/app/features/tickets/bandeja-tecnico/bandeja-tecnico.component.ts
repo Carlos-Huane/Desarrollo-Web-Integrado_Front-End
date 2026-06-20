@@ -144,7 +144,7 @@ export class BandejaTecnicoComponent implements OnInit {
 
   ngOnInit(): void {
     const sesion = this.auth.sesion();
-    if (!sesion?.id) { this.cargando.set(false); return; }
+    if (!sesion) { this.cargando.set(false); return; }
     this.srv.bandejaTecnico(sesion.id).subscribe({
       next: t => { this.tickets.set(t); this.cargando.set(false); },
       error: () => {
@@ -173,10 +173,10 @@ export class BandejaTecnicoComponent implements OnInit {
     if (!ok) return;
 
     const sesion = this.auth.sesion();
-    if (!sesion?.id) return;
+    if (!sesion) return;
 
     this.actualizandoId.set(t.id);
-    this.srv.cambiarEstado(t.id, sesion.id, { nuevoEstado }).subscribe({
+    this.srv.cambiarEstado(t.id, sesion.id, { estadoNuevo: nuevoEstado }).subscribe({
       next: actualizado => {
         this.tickets.update(arr =>
           actualizado.estado === 'CERRADO'

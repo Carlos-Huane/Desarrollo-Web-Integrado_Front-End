@@ -1,0 +1,42 @@
+@use '../../../../styles/variables' as v;
+
+.page__header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px;
+  h1 { margin: 0; color: v.$color-primary-dark; }
+  p  { margin: 4px 0 0; color: v.$color-text-soft; font-size: 14px; }
+}
+
+.filtros {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  input, select {
+    padding: 9px 12px; border: 1px solid v.$color-border; border-radius: v.$radius-md;
+    font-size: 14px; background: v.$color-surface; color: v.$color-text;
+    &:focus { outline: none; border-color: v.$color-primary; box-shadow: 0 0 0 3px rgba(30,64,175,.12); }
+  }
+  input { flex: 1; min-width: 240px; }
+  select { min-width: 160px; }
+}
+
+.tabla {
+  width: 100%; border-collapse: collapse;
+  background: v.$color-surface; border-radius: v.$radius-md; overflow: hidden;
+  box-shadow: v.$shadow-sm;
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid v.$color-border; font-size: 14px; }
+  th { background: #f1f5f9; color: v.$color-text-soft; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; }
+  tr:last-child td { border-bottom: none; }
+}
+
+.clickable { cursor: pointer; transition: background-color .1s; }
+.clickable:hover { background: #f8fafc; }
+
+.placeholder { color: v.$color-text-mute; text-align: center; padding: 24px; }
+
+.paginador {
+  display: flex; justify-content: center; align-items: center; gap: 18px;
+  margin-top: 18px; font-size: 14px; color: v.$color-text-soft;
+  button {
+    padding: 8px 14px; border: 1px solid v.$color-border; background: v.$color-surface;
+    border-radius: v.$radius-md; font-size: 13px; font-weight: 600; cursor: pointer;
+    &:hover:not(:disabled) { background: #f8fafc; color: v.$color-primary; border-color: v.$color-primary; }
+    &:disabled { opacity: .4; cursor: not-allowed; }
+  }
+}

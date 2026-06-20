@@ -69,7 +69,7 @@ export class MisTicketsComponent implements OnInit {
 
   ngOnInit(): void {
     const sesion = this.auth.sesion();
-    if (!sesion?.id) { this.cargando.set(false); return; }
+    if (!sesion) { this.cargando.set(false); return; }
     this.srv.porCliente(sesion.id).subscribe(t => {
       this.tickets.set(t);
       this.cargando.set(false);
