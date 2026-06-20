@@ -29,8 +29,24 @@
         <strong class="kpi__value">{{ totalCerrados() }}</strong>
       </article>
       <article class="kpi kpi--info">
-        <span class="kpi__label">Técnicos</span>
+        <span class="kpi__label">Técnicos activos</span>
         <strong class="kpi__value">{{ totalTecnicos() }}</strong>
+      </article>
+    </div>
+
+    <div class="charts">
+      <article class="chart-card">
+        <h3>Tickets por estado</h3>
+        <div class="chart-card__body">
+          <app-chart-canvas [config]="graficoEstado()" />
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <h3>Tickets por prioridad</h3>
+        <div class="chart-card__body">
+          <app-chart-canvas [config]="graficoPrioridad()" />
+        </div>
       </article>
     </div>
   }

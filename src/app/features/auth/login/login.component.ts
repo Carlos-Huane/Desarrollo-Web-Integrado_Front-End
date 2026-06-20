@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -17,6 +18,7 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private notif = inject(NotificacionService);
 
   appName = environment.appName;
   cargando = signal(false);
@@ -35,6 +37,7 @@ export class LoginComponent {
 
     this.auth.login(this.form.getRawValue()).subscribe({
       next: res => {
+        this.notif.success(`Bienvenido, ${res.nombreCompleto}`);
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
         this.router.navigateByUrl(redirect ?? this.auth.rutaInicialPorRol(res.rol));
       },

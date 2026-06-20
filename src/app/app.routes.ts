@@ -114,5 +114,15 @@ export const routes: Routes = [
     ]
   },
 
-  { path: '**', redirectTo: 'login' }
+  {
+    path: 'no-autorizado',
+    loadComponent: () =>
+      import('./features/errores/no-autorizado.component').then(m => m.NoAutorizadoComponent)
+  },
+
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./features/errores/not-found.component').then(m => m.NotFoundComponent)
+  }
 ];

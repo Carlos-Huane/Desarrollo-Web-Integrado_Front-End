@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 import { ROLES, Rol } from '../../../core/models/rol.enum';
 
 @Component({
@@ -58,6 +59,7 @@ export class UsuarioFormularioComponent implements OnInit {
   private srv = inject(UsuarioService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private notif = inject(NotificacionService);
 
   roles = ROLES;
   id = signal<number | null>(null);
@@ -98,7 +100,10 @@ export class UsuarioFormularioComponent implements OnInit {
       : this.srv.crear(payload);
 
     op$.subscribe({
-      next: () => this.router.navigate(['/admin/usuarios']),
+      next: () => {
+        this.notif.success(this.id() ? 'Usuario actualizado' : 'Usuario creado');
+        this.router.navigate(['/admin/usuarios']);
+      },
       error: e => { this.errorMsg.set(e?.error?.message ?? 'Error al guardar'); this.cargando.set(false); }
     });
   }

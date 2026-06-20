@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TicketService } from '../../../core/services/ticket.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { HistorialTicket, Ticket } from '../../../core/models/ticket.model';
 import { Usuario } from '../../../core/models/usuario.model';
@@ -43,38 +44,46 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
             </dl>
           </article>
 
-          <article class="card">
-            <h3>Cambiar estado</h3>
-            <form [formGroup]="form" (ngSubmit)="enviar()" class="form">
-              <label>
-                <span>Nuevo estado</span>
-                <select formControlName="nuevoEstado">
-                  @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
-                </select>
-              </label>
-
-              @if (puedeAsignar()) {
+          @if (puedeCambiarEstado()) {
+            <article class="card">
+              <h3>Cambiar estado</h3>
+              <form [formGroup]="form" (ngSubmit)="enviar()" class="form">
                 <label>
-                  <span>Asignar a técnico</span>
-                  <select formControlName="tecnicoId">
-                    <option [ngValue]="null">— Sin asignar —</option>
-                    @for (te of tecnicos(); track te.id) {
-                      <option [ngValue]="te.id">{{ te.nombre }} {{ te.apellido }}</option>
-                    }
+                  <span>Nuevo estado</span>
+                  <select formControlName="nuevoEstado">
+                    @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
                   </select>
                 </label>
-              }
 
-              <label>
-                <span>Comentario</span>
-                <textarea formControlName="comentario" rows="3"></textarea>
-              </label>
+                @if (puedeAsignar()) {
+                  <label>
+                    <span>Asignar a técnico</span>
+                    <select formControlName="tecnicoId">
+                      <option [ngValue]="null">— Sin asignar —</option>
+                      @for (te of tecnicos(); track te.id) {
+                        <option [ngValue]="te.id">{{ te.nombre }} {{ te.apellido }}</option>
+                      }
+                    </select>
+                  </label>
+                }
 
-              <button type="submit" [disabled]="form.invalid || guardando()">
-                {{ guardando() ? 'Guardando…' : 'Aplicar cambio' }}
-              </button>
-            </form>
-          </article>
+                <label>
+                  <span>Comentario</span>
+                  <textarea formControlName="comentario" rows="3"></textarea>
+                </label>
+
+                <button type="submit" [disabled]="form.invalid || guardando()">
+                  {{ guardando() ? 'Guardando…' : 'Aplicar cambio' }}
+                </button>
+              </form>
+            </article>
+          } @else {
+            <article class="card card--muted">
+              <h3>Seguimiento</h3>
+              <p>Esta vista es de solo lectura para tu rol. Recibirás actualizaciones del técnico
+                 asignado en el historial.</p>
+            </article>
+          }
 
           <article class="card card--wide">
             <h3>Historial</h3>
@@ -108,6 +117,8 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
     .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
     .card h3 { margin: 0 0 14px; color: #1e3a8a; font-size: 15px; }
     .card--wide { grid-column: 1 / -1; }
+    .card--muted { background: #f1f5f9; color: #475569; }
+    .card--muted p { margin: 0; font-size: 13px; line-height: 1.5; }
     .meta { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 12px 0 0; font-size: 13px; }
     .meta dt { color: #94a3b8; }
     .meta dd { margin: 0; color: #0f172a; }
@@ -130,6 +141,7 @@ export class TicketDetalleComponent implements OnInit {
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
+  private notif = inject(NotificacionService);
 
   estados = ESTADOS;
 
@@ -147,6 +159,11 @@ export class TicketDetalleComponent implements OnInit {
 
   puedeAsignar(): boolean {
     return this.auth.rol() === 'ADMIN';
+  }
+
+  puedeCambiarEstado(): boolean {
+    const r = this.auth.rol();
+    return r === 'ADMIN' || r === 'TECNICO';
   }
 
   ngOnInit(): void {
@@ -182,9 +199,14 @@ export class TicketDetalleComponent implements OnInit {
       next: tk => {
         this.ticket.set(tk);
         this.srv.historial(tk.id).subscribe(h => this.historial.set(h));
+        this.form.patchValue({ comentario: '' });
+        this.notif.success('Cambio aplicado');
         this.guardando.set(false);
       },
-      error: () => this.guardando.set(false)
+      error: () => {
+        this.notif.error('No se pudo aplicar el cambio');
+        this.guardando.set(false);
+      }
     });
   }
 }

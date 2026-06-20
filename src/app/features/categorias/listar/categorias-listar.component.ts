@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CategoriaService } from '../../../core/services/categoria.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { Categoria } from '../../../core/models/categoria.model';
 
 @Component({
@@ -59,6 +61,8 @@ import { Categoria } from '../../../core/models/categoria.model';
 export class CategoriasListarComponent implements OnInit {
   private srv = inject(CategoriaService);
   private fb = inject(FormBuilder);
+  private notif = inject(NotificacionService);
+  private confirm = inject(ConfirmService);
 
   categorias = signal<Categoria[]>([]);
   cargando = signal(true);
@@ -72,16 +76,35 @@ export class CategoriasListarComponent implements OnInit {
 
   cargar(): void {
     this.cargando.set(true);
-    this.srv.listarTodas().subscribe(c => { this.categorias.set(c); this.cargando.set(false); });
+    this.srv.listarTodas().subscribe({
+      next: c => { this.categorias.set(c); this.cargando.set(false); },
+      error: () => { this.cargando.set(false); this.notif.error('No se pudo cargar categorías'); }
+    });
   }
 
   crear(): void {
     if (this.form.invalid) return;
-    this.srv.crear(this.form.getRawValue()).subscribe(() => { this.form.reset(); this.cargar(); });
+    this.srv.crear(this.form.getRawValue()).subscribe({
+      next: () => { this.notif.success('Categoría creada'); this.form.reset(); this.cargar(); },
+      error: () => this.notif.error('No se pudo crear la categoría')
+    });
   }
 
-  toggle(c: Categoria): void {
+  async toggle(c: Categoria): Promise<void> {
+    if (c.activo) {
+      const ok = await this.confirm.preguntar({
+        titulo: 'Desactivar categoría',
+        mensaje: `"${c.nombre}" no estará disponible para nuevos tickets.`,
+        textoConfirmar: 'Desactivar',
+        tipo: 'peligro'
+      });
+      if (!ok) return;
+    }
+
     const op$ = c.activo ? this.srv.desactivar(c.id) : this.srv.activar(c.id);
-    op$.subscribe(() => this.cargar());
+    op$.subscribe({
+      next: () => { this.notif.success(`Categoría ${c.activo ? 'desactivada' : 'activada'}`); this.cargar(); },
+      error: () => this.notif.error('No se pudo cambiar el estado')
+    });
   }
 }

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TicketService } from '../../../core/services/ticket.service';
 import { CategoriaService } from '../../../core/services/categoria.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Categoria, Subcategoria } from '../../../core/models/categoria.model';
 import { PRIORIDADES } from '../../../core/models/prioridad.enum';
@@ -88,6 +89,7 @@ export class TicketCrearComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private notif = inject(NotificacionService);
 
   prioridades = PRIORIDADES;
   categorias = signal<Categoria[]>([]);
@@ -127,7 +129,10 @@ export class TicketCrearComponent implements OnInit {
       categoriaId: v.categoriaId!,
       subcategoriaId: v.subcategoriaId ?? undefined
     }).subscribe({
-      next: () => this.router.navigate(['/cliente/mis-tickets']),
+      next: () => {
+        this.notif.success('Ticket creado correctamente');
+        this.router.navigate(['/cliente/mis-tickets']);
+      },
       error: e => { this.errorMsg.set(e?.error?.message ?? 'Error al crear ticket'); this.enviando.set(false); }
     });
   }
