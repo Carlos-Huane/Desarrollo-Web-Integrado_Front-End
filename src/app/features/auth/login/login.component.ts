@@ -23,14 +23,25 @@ export class LoginComponent {
   appName = environment.appName;
   cargando = signal(false);
   errorMsg = signal<string | null>(null);
+  intentoEnviar = signal(false);
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
+  invalido(campo: 'email' | 'password'): boolean {
+    const c = this.form.controls[campo];
+    return c.invalid && (c.touched || this.intentoEnviar());
+  }
+
   enviar(): void {
-    if (this.form.invalid || this.cargando()) return;
+    this.intentoEnviar.set(true);
+    if (this.cargando()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.cargando.set(true);
     this.errorMsg.set(null);
