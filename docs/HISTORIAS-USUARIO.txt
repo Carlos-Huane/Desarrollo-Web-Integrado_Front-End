@@ -1,0 +1,320 @@
+================================================================================
+ INTRANET TELECOPERÚ — FRONTEND ANGULAR
+ HISTORIAS DE USUARIO (HU)
+ Grupo 6 · Curso: Desarrollo Web Integrado · Docente: Marcelino Estrada Aro
+ Generado: 2026-06-20
+================================================================================
+
+LEYENDA DE ESTADO
+-----------------
+[OK]    Hecho en el scaffold inicial.
+[WIP]   En curso por Carlos (Scrum Master).
+[CARL]  Asignado a Carlos Huane (~80% del front).
+[DEV-1] Asignado a Gonzales Alvis, Claudia Leonor.
+[DEV-2] Asignado a Prado Misaico, Bartolome Angelo.
+[DEV-3] Asignado a Rodriguez Chacaliaza, Airton Clides.
+[PO]    A revisar / priorizar con el Product Owner (Rodriguez Pozo, Matias).
+
+REGLAS PARA EL EQUIPO
+---------------------
+- Cada compañero crea su rama desde develop:  feature/<modulo>-<tarea-corta>
+- Al terminar, hacen Pull Request a develop. Carlos revisa y mergea.
+- Cumplir criterios de aceptación de cada HU.
+- Usar Reactive Forms con validación visual (no template-driven).
+- Apoyarse en la paleta + variables ya definidas en src/styles/_variables.scss.
+- Endpoints documentados en README.md del backend.
+
+================================================================================
+ ÉPICA 0 — INFRAESTRUCTURA DEL PROYECTO
+================================================================================
+
+HU-INF-01 — Scaffold Angular con SASS y routing                          [OK]
+  COMO   desarrollador del equipo
+  QUIERO un proyecto Angular 18 standalone con SCSS y lazy loading
+  PARA   construir features de forma modular.
+  Criterios:
+  - Angular CLI 18 instalado.
+  - `ng new` con --style=scss --routing --standalone.
+  - Carpetas: core, shared, layouts, features.
+
+HU-INF-02 — Capa core de autenticación                                   [OK]
+  COMO   sistema
+  QUIERO interceptor JWT + AuthGuard + RoleGuard
+  PARA   proteger rutas por sesión y rol.
+  Criterios:
+  - AuthService con signals (sesion, isAuthenticated, rol).
+  - JwtInterceptor agrega Bearer y desloguea en 401/403.
+  - authGuard y roleGuard funcionales.
+
+HU-INF-03 — Servicios HTTP de los 5 módulos del back                     [OK]
+  Criterios: UsuarioService, CategoriaService, TicketService, SlaService
+  alineados al README del backend.
+
+HU-INF-04 — Layouts por rol (Admin, Técnico, Cliente)                    [OK]
+  Criterios: sidebar dinámico, topbar con usuario + logout, navegación.
+
+================================================================================
+ ÉPICA 1 — AUTENTICACIÓN
+================================================================================
+
+HU-AUTH-01 — Iniciar sesión                                              [OK]
+  COMO   usuario registrado
+  QUIERO ingresar con email y contraseña
+  PARA   acceder a la intranet con mi rol.
+  Criterios:
+  - Formulario reactivo con validación (email y password >= 6).
+  - Llama POST /api/auth/login.
+  - Guarda token + sesión en localStorage.
+  - Redirige según rol:
+        ADMIN   -> /admin/dashboard
+        TECNICO -> /tecnico/bandeja
+        CLIENTE -> /cliente/mis-tickets
+  - Si hay queryParam `redirect`, va ahí en lugar de la ruta por rol.
+  - Muestra mensaje de error claro si credenciales inválidas.
+
+HU-AUTH-02 — Cerrar sesión                                               [OK]
+  Criterios: botón en sidebar, limpia localStorage, redirige a /login.
+
+HU-AUTH-03 — Recordar redirección post-login                             [OK]
+  Criterios: si el guard rechaza una ruta, al loguearse vuelve a esa URL.
+
+HU-AUTH-04 — Vista de "Acceso no autorizado"                  [DEV-3]    [PEND]
+  COMO   usuario logueado con rol incorrecto
+  QUIERO ver una pantalla amigable cuando entro a una ruta sin permiso
+  PARA   entender por qué se me redirige.
+  Criterios:
+  - Crear componente shared/components/no-autorizado/no-autorizado.component
+  - El roleGuard lo enruta cuando hay sesión pero rol incorrecto.
+  - Botón "Ir a mi inicio" según rol actual.
+
+================================================================================
+ ÉPICA 2 — DASHBOARD (ADMIN)
+================================================================================
+
+HU-DASH-01 — KPIs operativos                                  [CARL]     [OK]
+  COMO   ADMIN
+  QUIERO ver totales (tickets, nuevos, en atención, resueltos, técnicos)
+  PARA   tener visión rápida de la operación.
+  Criterios:
+  - 6 cards con valor numérico y color por estado.
+  - Carga reactiva con forkJoin de tickets + técnicos.
+
+HU-DASH-02 — Gráfico de tickets por estado                    [DEV-1]    [PEND]
+  COMO   ADMIN
+  QUIERO ver un gráfico de barras / dona con la distribución por estado
+  PARA   identificar cuellos de botella.
+  Criterios:
+  - Usar ng2-charts o chart.js (`npm i chart.js ng2-charts`).
+  - Datos: tickets agrupados por estado (5 categorías).
+  - Responsivo y con tooltips.
+
+HU-DASH-03 — Top 5 técnicos por tickets resueltos             [DEV-1]    [PEND]
+  Criterios:
+  - Tabla con foto/iniciales + nombre + cantidad resueltos del mes.
+  - Cargar bandeja de cada técnico y filtrar por estado RESUELTO.
+  - Cache en memoria por sesión (evitar llamadas repetidas).
+
+================================================================================
+ ÉPICA 3 — GESTIÓN DE USUARIOS (ADMIN)
+================================================================================
+
+HU-USR-01 — Listar usuarios                                   [CARL]     [OK]
+  Criterios: tabla con ID, nombre, email, rol, estado, acciones.
+
+HU-USR-02 — Crear y editar usuario                            [CARL]     [OK]
+  Criterios:
+  - Formulario reactivo, validaciones (email, password si crear).
+  - PUT vs POST según parámetro :id.
+  - En edición, password es opcional.
+
+HU-USR-03 — Activar / desactivar usuario                      [CARL]     [OK]
+  Criterios: botón toggle, refresca tabla.
+
+HU-USR-04 — Filtros + búsqueda + paginación                   [DEV-2]    [PEND]
+  COMO   ADMIN
+  QUIERO buscar usuarios por nombre/email y filtrar por rol/estado
+  PARA   encontrar cuentas rápidamente.
+  Criterios:
+  - Input de búsqueda con debounce 300 ms.
+  - Selectores: rol (todos/ADMIN/TECNICO/CLIENTE) y estado.
+  - Paginación cliente: 10 por página, controles prev/next.
+
+HU-USR-05 — Confirmación antes de desactivar                  [DEV-2]    [PEND]
+  Criterios:
+  - Modal de confirmación reutilizable en shared/components/confirm-dialog.
+  - Cancelar evita la llamada al PATCH.
+
+================================================================================
+ ÉPICA 4 — CATEGORÍAS Y SUBCATEGORÍAS
+================================================================================
+
+HU-CAT-01 — Listar y crear categorías                         [CARL]     [OK]
+  Criterios: form de alta inline + tabla con activar/desactivar.
+
+HU-CAT-02 — Gestionar subcategorías                           [DEV-2]    [PEND]
+  COMO   ADMIN
+  QUIERO ver y crear subcategorías de una categoría
+  PARA   organizar tickets con más granularidad.
+  Criterios:
+  - Acceso desde la fila de categoría -> /admin/categorias/:id/subcategorias
+  - Scaffold ya hecho. Falta:
+      * Edición inline de nombre/descripción.
+      * Validación de duplicados (mismo nombre en misma categoría).
+      * Mensaje de éxito visible.
+
+HU-CAT-03 — Editar categoría                                  [DEV-2]    [PEND]
+  Criterios:
+  - Botón "Editar" en cada fila abre modal o ruta dedicada.
+  - PUT /api/categorias/{id}.
+
+================================================================================
+ ÉPICA 5 — TICKETS (ADMIN)
+================================================================================
+
+HU-TKT-A01 — Listar todos los tickets                         [CARL]     [OK]
+  Criterios:
+  - Tabla con ID, título, cliente, técnico, prioridad, estado, fecha.
+  - Filtros por estado y prioridad.
+  - Click en fila navega al detalle.
+
+HU-TKT-A02 — Detalle de ticket + cambio de estado             [CARL]     [OK]
+  Criterios:
+  - Cabecera con badges de estado y prioridad.
+  - Cuerpo: descripción + meta (cliente, categoría, técnico, fechas).
+  - Form de cambio de estado con select + textarea de comentario.
+  - Si rol = ADMIN, permite asignar técnico.
+  - Línea de tiempo de historial.
+
+HU-TKT-A03 — Búsqueda y orden                                 [DEV-3]    [PEND]
+  Criterios:
+  - Buscador por título y descripción (debounce 300 ms).
+  - Orden por fecha desc/asc y prioridad.
+
+HU-TKT-A04 — Reasignación de técnico                          [DEV-3]    [PEND]
+  Criterios:
+  - Desde detalle, ADMIN puede cambiar técnico aunque no haya cambio de estado.
+  - Crear endpoint PATCH dedicado en back si no existe, coordinar con grupo.
+
+================================================================================
+ ÉPICA 6 — TICKETS (TÉCNICO)
+================================================================================
+
+HU-TEC-01 — Bandeja del técnico (lista de asignados)          [DEV-3]    [WIP]
+  Criterios:
+  - Scaffold ya carga GET /api/tickets/tecnico/{id}.
+  - Falta:
+      * Vista kanban (3 columnas: EN_ATENCION, ESCALADO, RESUELTO).
+      * Indicador visual cuando alertaSlaEnviada = true.
+      * Filtros rápidos por prioridad.
+
+HU-TEC-02 — Cambio de estado rápido desde la card             [DEV-3]    [PEND]
+  Criterios:
+  - Menú contextual en cada card de la bandeja con estados permitidos.
+  - PATCH /api/tickets/{ticketId}/estado/{usuarioId}.
+  - Toast de confirmación.
+
+HU-TEC-03 — Detalle de ticket reutilizado                     [CARL]     [OK]
+  Criterios: ruta /tecnico/tickets/:id consume TicketDetalleComponent.
+
+================================================================================
+ ÉPICA 7 — TICKETS (CLIENTE)
+================================================================================
+
+HU-CLI-01 — Crear ticket                                      [CARL]     [OK]
+  Criterios:
+  - Form reactivo: título, descripción, categoría, subcategoría, prioridad.
+  - Subcategoría se carga al elegir categoría.
+  - POST /api/tickets/cliente/{clienteId}.
+
+HU-CLI-02 — Listar mis tickets                                [CARL]     [OK]
+  Criterios:
+  - GET /api/tickets/cliente/{clienteId}.
+  - Cards con badges, fecha y categoría.
+  - Estado vacío con CTA "Crea el primero".
+
+HU-CLI-03 — Ver detalle de mi ticket                          [CARL]     [OK]
+  Criterios:
+  - Ruta /cliente/tickets/:id.
+  - Reusa TicketDetalleComponent (form de cambio oculto para CLIENTE).
+  - NOTA: revisar lógica de visibilidad del form para CLIENTE en HU-CLI-04.
+
+HU-CLI-04 — Restringir form de estado para CLIENTE            [DEV-1]    [PEND]
+  Criterios:
+  - En TicketDetalleComponent, el form de cambio de estado solo se muestra
+    si rol es ADMIN o TECNICO.
+  - Para CLIENTE: ocultar tarjeta y mostrar solo historial.
+
+HU-CLI-05 — Adjuntar archivos al crear ticket                 [DEV-1]    [PO]
+  Criterios:
+  - Input file múltiple, validación de tamaño (max 5 MB) y tipo.
+  - Coordinar con backend para endpoint de subida (POST multipart).
+  - Si back no lo soporta aún, dejar como PEND y bajar prioridad.
+
+================================================================================
+ ÉPICA 8 — SLA (ADMIN)
+================================================================================
+
+HU-SLA-01 — Configurar tiempos por prioridad                  [DEV-1]    [WIP]
+  Criterios:
+  - Scaffold ya carga y permite editar inline.
+  - Falta:
+      * Validaciones (horas > 0, respuesta <= resolución).
+      * Toast de éxito al guardar.
+      * Reseteo a valores por defecto.
+
+================================================================================
+ ÉPICA 9 — UX TRANSVERSAL
+================================================================================
+
+HU-UX-01 — Toast / notificaciones globales                    [DEV-2]    [PEND]
+  Criterios:
+  - Servicio NotificacionService en core/services con subject de mensajes.
+  - Componente shared <app-toast> que escucha y muestra (3s autoclose).
+  - Métodos: success(), error(), info(), warning().
+  - Reemplazar alerts inline donde aplique.
+
+HU-UX-02 — Loader global                                      [DEV-2]    [PEND]
+  Criterios:
+  - Indicador (barra arriba) que se activa cuando hay peticiones HTTP en curso.
+  - Implementar con un nuevo interceptor que cuente requests.
+
+HU-UX-03 — Responsive mínimo                                  [DEV-3]    [PEND]
+  Criterios:
+  - El layout y todas las tablas funcionan en >= 768 px (tablet).
+  - Sidebar colapsable en < 1024 px.
+
+================================================================================
+ ÉPICA 10 — DESPLIEGUE Y CIERRE
+================================================================================
+
+HU-DEP-01 — Build de producción                               [CARL]     [PEND]
+  Criterios:
+  - `ng build` sin errores.
+  - environment.prod.ts con URL del back (Render / Railway / Vercel proxy).
+
+HU-DEP-02 — Despliegue en Vercel (o el que indique el docente) [CARL]    [PEND]
+  Criterios:
+  - vercel.json con rewrites a index.html (SPA fallback).
+  - URL pública compartida en el avance final.
+
+HU-DEP-03 — README de uso para el grupo                       [CARL]     [PEND]
+  Criterios:
+  - Cómo clonar, instalar, configurar API_BASE_URL y correr en dev.
+  - Lista de credenciales de prueba del back.
+  - Convenciones de ramas (develop, feature/*).
+
+================================================================================
+ ASIGNACIÓN AGREGADA (CHECK 80/20)
+================================================================================
+
+CARLOS:  21 HU completadas / asignadas (scaffold, auth, dashboard, usuarios,
+         categorías base, tickets admin, tickets cliente, deploy).
+DEV-1:    4 HU (gráficos del dashboard, restricción cliente, SLA refinado,
+         adjuntos opcional).
+DEV-2:    4 HU (subcategorías refinadas, editar categoría, búsqueda y modal
+         confirmación de usuarios, toast/loader global).
+DEV-3:    5 HU (acceso no autorizado, búsqueda y reasignación de tickets,
+         kanban técnico, cambio rápido de estado, responsive).
+
+Carga aproximada: Carlos ≈ 80 %, equipo ≈ 20 %.
+================================================================================

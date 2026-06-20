@@ -1,0 +1,40 @@
+@use '../../../styles/variables' as v;
+
+.page {
+  &__header {
+    margin-bottom: 24px;
+    h1 { margin: 0 0 4px; color: v.$color-primary-dark; }
+    p  { margin: 0; color: v.$color-text-soft; font-size: 14px; }
+  }
+}
+
+.placeholder {
+  color: v.$color-text-mute;
+  font-style: italic;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.kpi {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  padding: 18px 20px;
+  border-left: 4px solid v.$color-primary;
+  box-shadow: v.$shadow-sm;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label { font-size: 12px; color: v.$color-text-soft; text-transform: uppercase; letter-spacing: .05em; }
+  &__value { font-size: 28px; color: v.$color-text; }
+
+  &--nuevo       { border-left-color: v.$estado-nuevo; }
+  &--en-atencion { border-left-color: v.$estado-en-atencion; }
+  &--resuelto    { border-left-color: v.$estado-resuelto; }
+  &--cerrado     { border-left-color: v.$estado-cerrado; }
+  &--info        { border-left-color: v.$color-info; }
+}

@@ -1,0 +1,37 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Dashboard</h1>
+    <p>Resumen operativo de la Intranet</p>
+  </header>
+
+  @if (cargando()) {
+    <p class="placeholder">Cargando indicadores…</p>
+  } @else {
+    <div class="kpis">
+      <article class="kpi">
+        <span class="kpi__label">Total tickets</span>
+        <strong class="kpi__value">{{ totalTickets() }}</strong>
+      </article>
+      <article class="kpi kpi--nuevo">
+        <span class="kpi__label">Nuevos</span>
+        <strong class="kpi__value">{{ totalNuevos() }}</strong>
+      </article>
+      <article class="kpi kpi--en-atencion">
+        <span class="kpi__label">En atención</span>
+        <strong class="kpi__value">{{ totalEnAtencion() }}</strong>
+      </article>
+      <article class="kpi kpi--resuelto">
+        <span class="kpi__label">Resueltos</span>
+        <strong class="kpi__value">{{ totalResueltos() }}</strong>
+      </article>
+      <article class="kpi kpi--cerrado">
+        <span class="kpi__label">Cerrados</span>
+        <strong class="kpi__value">{{ totalCerrados() }}</strong>
+      </article>
+      <article class="kpi kpi--info">
+        <span class="kpi__label">Técnicos</span>
+        <strong class="kpi__value">{{ totalTecnicos() }}</strong>
+      </article>
+    </div>
+  }
+</section>
