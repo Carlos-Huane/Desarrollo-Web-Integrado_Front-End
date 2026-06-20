@@ -83,6 +83,7 @@ src/app/
 Detalle del plan en `docs/PLAN-FRONTEND.md`.
 Historias de usuario en `docs/HISTORIAS-USUARIO.txt`.
 **Plan de pruebas QA en `docs/PLAN-DE-PRUEBAS.txt`** (62 casos para Matias y Angelo).
+**Asignación de QA en `docs/ASIGNACION-QA.txt`** (handoff con división Matias/Angelo + cómo levantar el entorno + cómo reportar).
 
 ---
 
