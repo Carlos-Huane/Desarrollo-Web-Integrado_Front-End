@@ -148,19 +148,21 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
   `,
   styles: [`
     .page { max-width: 1100px; }
-    .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
     .head h1 { margin: 4px 0 0; color: #1e3a8a; }
     .head small { color: #94a3b8; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
     .head__chips { display: flex; gap: 8px; }
-    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px;
+            @media (max-width: 900px) { grid-template-columns: 1fr; } }
     .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
     .card h3 { margin: 0 0 14px; color: #1e3a8a; font-size: 15px; }
     .card--wide { grid-column: 1 / -1; }
     .card--muted { background: #f1f5f9; color: #475569; }
     .card--muted p { margin: 0; font-size: 13px; line-height: 1.5; }
-    .meta { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 12px 0 0; font-size: 13px; }
+    .meta { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 12px 0 0; font-size: 13px;
+            @media (max-width: 480px) { grid-template-columns: 100px 1fr; font-size: 12px; } }
     .meta dt { color: #94a3b8; }
-    .meta dd { margin: 0; color: #0f172a; }
+    .meta dd { margin: 0; color: #0f172a; word-break: break-word; }
     .form { display: flex; flex-direction: column; gap: 12px; }
     .form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; }
     .form select, .form textarea { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; font-family: inherit; }
@@ -175,7 +177,7 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
 
     .comentario-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
     .comentario-form textarea { padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical; }
-    .comentario-form__actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .comentario-form__actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .comentario-form__actions button { padding: 8px 16px; background: #1e40af; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
       &:disabled { background: #94a3b8; cursor: not-allowed; } }
     .check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; }

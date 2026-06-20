@@ -3,7 +3,7 @@
 .page {
   &__header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
     h1 { margin: 0; color: v.$color-primary-dark; }
     p  { margin: 4px 0 0; color: v.$color-text-soft; font-size: 14px; }
   }

@@ -1,6 +1,6 @@
 @use '../../../../styles/variables' as v;
 
-.page__header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px;
+.page__header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 8px;
   h1 { margin: 0; color: v.$color-primary-dark; }
   p  { margin: 4px 0 0; color: v.$color-text-soft; font-size: 14px; }
 }
