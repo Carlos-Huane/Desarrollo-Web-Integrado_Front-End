@@ -43,8 +43,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 14px;
-  color: v.$color-text-soft;
+
+  &__label {
+    font-size: 13px; font-weight: 600; color: #334155;
+  }
 
   input {
     padding: 10px 12px;
@@ -64,6 +66,12 @@
   &__error {
     color: v.$color-danger;
     font-size: 12px;
+    font-weight: 500;
+  }
+
+  &--invalid input {
+    border-color: v.$color-danger;
+    &:focus { box-shadow: 0 0 0 3px rgba(220,38,38,.12); }
   }
 }
 
@@ -86,6 +94,7 @@
   font-weight: 600;
   font-size: 14px;
   transition: background-color .15s, transform .05s;
+  cursor: pointer;
 
   &--primary {
     background: v.$color-primary;

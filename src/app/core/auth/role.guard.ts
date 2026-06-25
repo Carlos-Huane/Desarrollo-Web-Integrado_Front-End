@@ -11,11 +11,7 @@ export const roleGuard = (rolesPermitidos: Rol[]): CanActivateFn => {
     const rolActual = auth.rol();
     if (rolActual && rolesPermitidos.includes(rolActual)) return true;
 
-    if (rolActual) {
-      router.navigateByUrl(auth.rutaInicialPorRol(rolActual));
-    } else {
-      router.navigate(['/login']);
-    }
+    router.navigate([rolActual ? '/no-autorizado' : '/login']);
     return false;
   };
 };

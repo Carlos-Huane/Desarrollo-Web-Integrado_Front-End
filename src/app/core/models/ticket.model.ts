@@ -28,17 +28,31 @@ export interface TicketRequest {
 }
 
 export interface CambioEstadoRequest {
-  nuevoEstado: Estado;
+  estadoNuevo: Estado;
   comentario?: string;
   tecnicoId?: number;
 }
 
 export interface HistorialTicket {
   id: number;
-  ticketId: number;
+  ticket?: { id: number };
+  usuario: Usuario;
   estadoAnterior?: Estado;
   estadoNuevo: Estado;
   comentario?: string;
-  fechaCambio: string;
-  usuario: Usuario;
+  createdAt: string;
+}
+
+export interface ComentarioTicket {
+  id: number;
+  ticket?: { id: number };
+  autor: Usuario;
+  mensaje: string;
+  interno: boolean;
+  createdAt: string;
+}
+
+export interface ComentarioRequest {
+  mensaje: string;
+  interno?: boolean;
 }

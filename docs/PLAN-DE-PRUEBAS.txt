@@ -1,0 +1,521 @@
+================================================================================
+ INTRANET TELECOPERÚ — PLAN DE PRUEBAS (QA)
+ Asignado a: Rodriguez Pozo, Matias Ariel (Product Owner)
+              Prado Misaico, Bartolome Angelo (Development Team)
+ Curso: Desarrollo Web Integrado · Grupo 6 · Docente: Marcelino Estrada Aro
+ Generado: 2026-06-20
+================================================================================
+
+OBJETIVO
+--------
+Validar end-to-end que la Intranet (frontend Angular 18 + backend Spring Boot)
+funciona correctamente con los 3 roles (ADMIN, TECNICO, CLIENTE) y todos los
+módulos del sistema.
+
+ENTORNO DE PRUEBA
+-----------------
+1. MySQL 8 corriendo en localhost:3306, usuario root / password admin.
+2. Backend levantado:
+     cd Desarrollo-Web-Integrado_Back-End
+     mvn spring-boot:run
+   Verificar log: "Started IntranetApplication in X seconds"
+   API base: http://localhost:8080/api
+3. Frontend levantado:
+     cd Desarrollo-Web-Integrado_Front-End
+     npm install     (solo la primera vez)
+     ng serve
+   App en: http://localhost:4200
+
+CREDENCIALES DE PRUEBA
+----------------------
+| Rol      | Email                         | Password    | ID |
+|----------|-------------------------------|-------------|----|
+| ADMIN    | admin@telecoperu.com          | admin123    | 1  |
+| ADMIN    | gerente.ti@telecoperu.com     | admin123    | 2  |
+| TECNICO  | tecnico1@telecoperu.com       | tecnico123  | 3  |
+| TECNICO  | tecnico2@telecoperu.com       | tecnico123  | 4  |
+| CLIENTE  | pedro.sanchez@telecoperu.com  | cliente123  | 5  |
+| CLIENTE  | maria.lopez@telecoperu.com    | cliente123  | 6  |
+| CLIENTE  | jose.quispe@telecoperu.com    | cliente123  | 7  |
+
+CRITERIOS GENERALES DE ACEPTACIÓN
+---------------------------------
+- Toda acción exitosa muestra un toast verde arriba a la derecha.
+- Toda acción fallida muestra un toast rojo.
+- La barra superior azul aparece durante peticiones HTTP en curso.
+- El menú lateral cambia según el rol logueado.
+- Al refrescar la página (F5), la sesión se conserva si el token es válido.
+- 401 o 403 del back cierra la sesión y redirige a /login.
+
+CÓMO REPORTAR UN BUG
+--------------------
+1. Capturar pantalla (Win + Shift + S).
+2. Anotar: caso (CP-XX), rol usado, pasos seguidos, qué pasó vs esperado.
+3. Abrir issue en GitHub:
+     https://github.com/Carlos-Huane/Desarrollo-Web-Integrado_Front-End/issues
+   Template: título corto · pasos numerados · esperado · obtenido · captura.
+
+LEYENDA DE PRIORIDADES
+----------------------
+[CRIT]  Bloqueante: si falla, la demo no se puede dar.
+[ALTA]  Funcional importante: degrada la experiencia.
+[MED]   Mejora o caso secundario.
+
+================================================================================
+ MÓDULO 1 — AUTENTICACIÓN
+================================================================================
+
+CP-01  [CRIT]  Login exitoso con cada rol
+  Precondición:  estar en /login (la URL raíz redirige aquí).
+  Pasos:
+    1. Ingresar admin@telecoperu.com / admin123 → "Ingresar".
+    2. Verificar toast "Bienvenido, Carlos Ramírez".
+    3. Verificar redirect a /admin/dashboard.
+    4. Cerrar sesión (botón en sidebar).
+    5. Repetir con tecnico1@telecoperu.com (debe ir a /tecnico/bandeja).
+    6. Repetir con pedro.sanchez@telecoperu.com (debe ir a /cliente/mis-tickets).
+  Esperado:  Cada rol llega a su pantalla de inicio.
+
+CP-02  [CRIT]  Login con contraseña incorrecta
+  Pasos:
+    1. Ingresar admin@telecoperu.com / cualquier-otra.
+  Esperado:  Mensaje de error visible debajo del form (no toast verde),
+             campo se conserva, no hay redirect.
+
+CP-03  [ALTA]  Login con email inválido (validación de form)
+  Pasos:
+    1. Ingresar "no-es-email" en el campo email.
+    2. Salir del campo.
+  Esperado:  Mensaje "Ingresa un correo válido" debajo del input,
+             botón "Ingresar" deshabilitado.
+
+CP-04  [ALTA]  Login con contraseña < 6 caracteres
+  Pasos:
+    1. Ingresar email válido + password "abc".
+  Esperado:  Mensaje "Mínimo 6 caracteres", botón deshabilitado.
+
+CP-05  [MED]  Redirección después de login con queryParam ?redirect
+  Pasos:
+    1. Sin sesión, navegar manualmente a /admin/dashboard.
+    2. Verificar que redirige a /login?redirect=%2Fadmin%2Fdashboard.
+    3. Iniciar sesión como admin.
+  Esperado:  Después del login va a /admin/dashboard (no a la home del rol).
+
+CP-06  [ALTA]  Sesión persistente al refrescar (F5)
+  Pasos:
+    1. Iniciar sesión.
+    2. Refrescar la página con F5.
+  Esperado:  La sesión se mantiene, no vuelve a pedir login.
+
+CP-07  [ALTA]  Cerrar sesión
+  Pasos:
+    1. Logueado, click "Cerrar sesión" en sidebar.
+  Esperado:  Redirige a /login. Si se intenta ir a una ruta protegida,
+             vuelve a /login.
+
+CP-08  [MED]  Acceso a ruta de otro rol → /no-autorizado
+  Pasos:
+    1. Login como CLIENTE.
+    2. Navegar manualmente a /admin/dashboard.
+  Esperado:  Redirige a /no-autorizado con pantalla amigable y botón
+             "Ir a mi inicio" que lleva a /cliente/mis-tickets.
+
+CP-09  [MED]  Página 404
+  Pasos:
+    1. Logueado, navegar a /ruta-inexistente.
+  Esperado:  Aparece página "404" con CTA de regreso.
+
+================================================================================
+ MÓDULO 2 — DASHBOARD (rol ADMIN)
+================================================================================
+
+CP-10  [CRIT]  Carga del dashboard con KPIs
+  Precondición:  Login como admin.
+  Pasos:
+    1. Ir a /admin/dashboard.
+  Esperado:
+    - 9 cards: Total, Nuevos, En atención, Escalados, Resueltos, Cerrados,
+      Técnicos, Clientes, ⌀ Resolución.
+    - Cada uno muestra el número que viene del back.
+    - Comparar contra la respuesta de GET /api/dashboard/resumen en Postman.
+
+CP-11  [ALTA]  Gráfico de tickets por estado
+  Esperado:  Dona con hasta 5 segmentos (NUEVO, EN_ATENCION, ESCALADO,
+             RESUELTO, CERRADO). Hover muestra tooltip con cantidad.
+             Total = suma de KPIs por estado.
+
+CP-12  [ALTA]  Gráfico de tickets por prioridad
+  Esperado:  Barras verticales (5 prioridades). Eje Y empieza en 0.
+
+CP-13  [ALTA]  Gráfico de tickets por categoría
+  Esperado:  Barras horizontales con una barra por categoría con tickets.
+
+CP-14  [ALTA]  Top 5 técnicos
+  Esperado:  Tabla con columnas: #, Técnico, Resueltos, ⌀ Tiempo (h).
+             Ordenada desc por "Resueltos". Si no hay resueltos: mensaje
+             "Aún no hay tickets resueltos."
+
+CP-15  [MED]  Estado vacío
+  Pasos:
+    1. (Si fuera posible) Vaciar la tabla tickets.
+  Esperado:  KPIs muestran 0, gráficos vacíos, ⌀ Resolución muestra "—".
+
+================================================================================
+ MÓDULO 3 — USUARIOS (rol ADMIN)
+================================================================================
+
+CP-16  [CRIT]  Listar usuarios
+  Pasos:
+    1. /admin/usuarios.
+  Esperado:  Tabla con los 7 usuarios sembrados. Cuenta de resultados visible
+             arriba ("7 de 7"). Paginación oculta (≤ 10 = 1 sola página).
+
+CP-17  [ALTA]  Búsqueda con debounce
+  Pasos:
+    1. En el input "Buscar", escribir "pedro".
+  Esperado:  Después de ~300ms aparece solo Pedro Sánchez.
+             El contador muestra "1 de 7".
+
+CP-18  [ALTA]  Filtro por rol
+  Pasos:
+    1. Seleccionar "TECNICO" en el select de rol.
+  Esperado:  Solo los 2 técnicos visibles.
+
+CP-19  [ALTA]  Filtro por estado
+  Pasos:
+    1. Seleccionar "Solo activos" / "Solo inactivos".
+  Esperado:  Filtra correctamente. Si tras desactivar uno (CP-21),
+             aparece en "Solo inactivos".
+
+CP-20  [CRIT]  Crear usuario
+  Pasos:
+    1. Click "+ Nuevo usuario".
+    2. Completar: Nombre, Apellido, Email único, Password ≥ 6, Teléfono, Rol.
+    3. "Guardar".
+  Esperado:
+    - Toast verde "Usuario creado".
+    - Redirige a /admin/usuarios.
+    - El usuario nuevo aparece en la tabla con estado "Activo".
+
+CP-21  [CRIT]  Desactivar usuario con confirmación
+  Pasos:
+    1. Click "Desactivar" en cualquier fila.
+  Esperado:
+    - Aparece modal "Desactivar usuario" con copy del nombre.
+    - Botón rojo "Desactivar" + "Cancelar".
+    - Click "Cancelar" → no pasa nada.
+    - Click "Desactivar" → toast verde + fila pasa a "Inactivo".
+
+CP-22  [ALTA]  Activar usuario inactivo
+  Esperado:  Sin modal (es operación reversible). Toast verde.
+
+CP-23  [ALTA]  Editar usuario
+  Pasos:
+    1. Click "Editar".
+    2. Cambiar teléfono y guardar.
+  Esperado:
+    - Form se precarga con datos actuales.
+    - Campo password no aparece en edición.
+    - Guardar muestra toast "Usuario actualizado".
+
+CP-24  [MED]  Paginación
+  Precondición:  Crear hasta tener > 10 usuarios.
+  Esperado:  Aparecen botones "← Anterior" y "Siguiente →" + "Página X de Y".
+
+CP-25  [MED]  Email duplicado al crear
+  Pasos:
+    1. Crear usuario con email ya existente.
+  Esperado:  Toast de error o mensaje claro del back ("ya está registrado").
+
+================================================================================
+ MÓDULO 4 — CATEGORÍAS Y SUBCATEGORÍAS (rol ADMIN)
+================================================================================
+
+CP-26  [CRIT]  Crear categoría
+  Pasos:
+    1. /admin/categorias.
+    2. Escribir nombre y descripción en el form superior. "Agregar".
+  Esperado:  Toast "Categoría creada", aparece en tabla.
+
+CP-27  [ALTA]  Edición inline de categoría
+  Pasos:
+    1. Click "Editar" en una fila.
+    2. Modificar nombre y descripción en los inputs que aparecen.
+    3. Click "Guardar".
+  Esperado:
+    - Cambios se reflejan al guardar.
+    - "Cancelar" descarta los cambios.
+    - Nombre vacío muestra warning amarillo (no permite guardar).
+
+CP-28  [ALTA]  Desactivar categoría con confirmación
+  Esperado:  Modal "Desactivar categoría", botón rojo. Al desactivar:
+             toast + estado pasa a "Inactiva".
+
+CP-29  [CRIT]  Listar y crear subcategorías
+  Pasos:
+    1. Desde /admin/categorias, click "Subcategorías" en una fila.
+    2. Verificar que llega a /admin/categorias/:id/subcategorias.
+    3. Crear nueva subcategoría.
+  Esperado:  Subcategoría aparece en la lista, toast verde.
+
+CP-30  [ALTA]  Duplicado de subcategoría
+  Pasos:
+    1. Intentar crear subcategoría con el mismo nombre que una existente
+       (case-insensitive) en la misma categoría.
+  Esperado:  Toast amarillo "Ya existe una subcategoría con ese nombre",
+             no se hace POST.
+
+CP-31  [ALTA]  Edición inline de subcategoría
+  Igual que CP-27 pero en subcategorías.
+
+================================================================================
+ MÓDULO 5 — TICKETS (rol ADMIN)
+================================================================================
+
+CP-32  [CRIT]  Listar tickets
+  Pasos:
+    1. /admin/tickets.
+  Esperado:  Tabla con todos los tickets sembrados (5–8 según data).
+             Click en fila → /admin/tickets/:id.
+
+CP-33  [ALTA]  Filtros combinados
+  Pasos:
+    1. Estado "RESUELTO" + Prioridad "ALTA".
+  Esperado:  Solo tickets que cumplen ambos.
+
+CP-34  [ALTA]  Búsqueda con debounce en tickets
+  Pasos:
+    1. Escribir "internet" en el buscador.
+  Esperado:  Filtra tickets cuyo título o descripción contienen "internet"
+             (case-insensitive).
+
+CP-35  [ALTA]  Orden por prioridad
+  Pasos:
+    1. Seleccionar "Por prioridad" en el orden.
+  Esperado:  CRITICA arriba, luego ALTA, MEDIA, BAJA, SIN_ASIGNAR.
+
+CP-36  [CRIT]  Detalle de ticket
+  Esperado:
+    - Cabecera con título + badges de estado y prioridad.
+    - Card "Descripción" con meta (cliente, categoría, técnico, fechas).
+    - Card "Cambiar estado" con form (visible para ADMIN/TECNICO).
+    - Card "Comentarios".
+    - Card "Historial" con línea de tiempo.
+
+CP-37  [CRIT]  Cambiar estado + asignar técnico
+  Pasos:
+    1. Cambiar estado a EN_ATENCION.
+    2. Asignar a tecnico1.
+    3. Escribir comentario "Asignación inicial".
+    4. "Aplicar cambio".
+  Esperado:
+    - Toast "Cambio aplicado".
+    - Badge de estado se actualiza.
+    - Línea de tiempo agrega una entrada nueva.
+    - El campo comentario se limpia.
+
+CP-38  [ALTA]  Agregar comentario público
+  Pasos:
+    1. Escribir mensaje, NO marcar "interno".
+    2. "Comentar".
+  Esperado:  Toast verde, comentario aparece en la lista con fondo gris.
+
+CP-39  [ALTA]  Agregar comentario interno
+  Pasos:
+    1. Marcar checkbox "Comentario interno".
+    2. Escribir y comentar.
+  Esperado:  Comentario aparece con fondo amarillo + tag "INTERNO".
+
+================================================================================
+ MÓDULO 6 — TICKETS (rol TECNICO)
+================================================================================
+
+CP-40  [CRIT]  Bandeja kanban
+  Precondición:  Login como tecnico1.
+  Pasos:
+    1. /tecnico/bandeja.
+  Esperado:  3 columnas (En atención, Escalado, Resuelto) con los tickets
+             asignados al técnico actual. Cabecera muestra cantidad por
+             columna.
+
+CP-41  [ALTA]  Cambio de estado rápido
+  Pasos:
+    1. En una card, click un botón "→ Escalado".
+  Esperado:
+    - Modal "Mover a Escalado" con confirmación.
+    - Al confirmar: toast verde, card se mueve a la columna correspondiente.
+
+CP-42  [ALTA]  Cerrar ticket desde RESUELTO
+  Pasos:
+    1. En un ticket RESUELTO, click "→ Cerrado".
+    2. Confirmar.
+  Esperado:  Toast verde, card desaparece de la bandeja (los CERRADOS no se
+             muestran).
+
+CP-43  [MED]  Indicador de SLA en riesgo
+  Precondición:  Existir ticket con alertaSlaEnviada = true en la BD.
+  Esperado:  Card muestra "⚠ SLA" en rojo.
+
+CP-44  [ALTA]  Técnico no ve form de "asignar a técnico"
+  Pasos:
+    1. Login técnico, abrir detalle de ticket asignado a él.
+  Esperado:  Card "Cambiar estado" visible, pero SIN selector de técnico
+             (solo aparece para ADMIN).
+
+CP-45  [MED]  Técnico puede comentar internamente
+  Esperado:  Checkbox "Comentario interno" visible y funcional.
+
+================================================================================
+ MÓDULO 7 — TICKETS (rol CLIENTE)
+================================================================================
+
+CP-46  [CRIT]  Mis tickets vacío y con tickets
+  Pasos:
+    1. Login como cliente nuevo (sin tickets).
+    2. /cliente/mis-tickets.
+  Esperado:  Mensaje "Aún no has creado tickets. Crea el primero..."
+  Repetir con pedro.sanchez (tiene tickets) → cards con badges.
+
+CP-47  [CRIT]  Crear ticket
+  Pasos:
+    1. Click "+ Nuevo ticket".
+    2. Completar título, descripción.
+    3. Elegir categoría → verificar que se cargan subcategorías.
+    4. Seleccionar subcategoría y prioridad.
+    5. "Crear ticket".
+  Esperado:
+    - Toast "Ticket creado correctamente".
+    - Redirige a /cliente/mis-tickets.
+    - Nuevo ticket aparece en la lista.
+
+CP-48  [ALTA]  Validaciones del form de creación
+  Pasos:
+    1. Intentar enviar sin título o sin descripción.
+  Esperado:  Botón "Crear ticket" deshabilitado mientras el form sea inválido.
+
+CP-49  [CRIT]  Cliente NO ve form de cambio de estado
+  Pasos:
+    1. Login como cliente, abrir detalle de su ticket.
+  Esperado:
+    - Card "Cambiar estado" NO aparece.
+    - En su lugar, card gris "Seguimiento" con texto explicativo.
+    - Sí ve historial y comentarios.
+
+CP-50  [ALTA]  Cliente NO ve checkbox "interno" al comentar
+  Esperado:  Solo input y botón "Comentar", sin checkbox interno.
+
+CP-51  [ALTA]  Cliente NO ve comentarios internos
+  Precondición:  Existe un ticket con un comentario marcado interno.
+  Esperado:  Al abrir el ticket como cliente, ese comentario NO aparece.
+             Al abrir el mismo ticket como técnico/admin, SÍ aparece.
+
+================================================================================
+ MÓDULO 8 — SLA (rol ADMIN)
+================================================================================
+
+CP-52  [CRIT]  Listar y editar SLA
+  Pasos:
+    1. /admin/sla.
+    2. Cambiar "Respuesta (h)" y "Resolución (h)" de la fila CRITICA.
+    3. Click "Guardar".
+  Esperado:  Toast "SLA de CRITICA actualizado". Los valores persisten al
+             refrescar.
+
+CP-53  [ALTA]  Validación: respuesta > resolución no permitido
+  Pasos:
+    1. Poner respuesta = 100, resolución = 50.
+  Esperado:  Fila se pinta de fondo rojizo, botón "Guardar" deshabilitado.
+
+CP-54  [ALTA]  Validación: valores ≤ 0
+  Esperado:  Botón "Guardar" deshabilitado.
+
+================================================================================
+ MÓDULO 9 — UX TRANSVERSAL
+================================================================================
+
+CP-55  [ALTA]  Barra de carga global
+  Pasos:
+    1. Cualquier acción que dispare HTTP.
+  Esperado:  Barra azul animada aparece arriba mientras dura la petición.
+
+CP-56  [ALTA]  Toast auto-cierre
+  Esperado:  Toast desaparece solo a los 4 segundos. Botón "×" lo cierra
+             manualmente.
+
+CP-57  [ALTA]  Sidebar colapsable en pantalla pequeña
+  Pasos:
+    1. Reducir ventana del navegador a < 1024px de ancho.
+  Esperado:
+    - Sidebar se oculta.
+    - Aparece botón "☰" en topbar.
+    - Click "☰" abre sidebar con backdrop oscuro.
+    - Click en el backdrop o en un nav item lo cierra.
+
+CP-58  [MED]  Móvil < 640px
+  Esperado:
+    - Padding reducido en topbar y contenido.
+    - Email/rol del usuario se oculta en topbar (solo nombre).
+    - Tablas no rompen layout (puede aparecer scroll horizontal).
+
+CP-59  [ALTA]  Token JWT expirado / inválido
+  Pasos:
+    1. En DevTools → Application → Local Storage, modificar el valor de
+       "intranet_jwt" a "invalido".
+    2. Hacer cualquier acción que dispare petición.
+  Esperado:  La respuesta 401 dispara logout automático y redirect a /login.
+
+================================================================================
+ PRUEBAS DE INTEGRACIÓN END-TO-END
+================================================================================
+
+CP-60  [CRIT]  Flujo completo: ticket de cliente → resolución
+  Pasos:
+    1. Login como Pedro Sánchez (cliente).
+    2. Crear ticket: "Prueba E2E", descripción cualquiera, categoría
+       "Conectividad", prioridad ALTA.
+    3. Logout. Login como Carlos Ramírez (admin).
+    4. Ir a /admin/tickets, abrir el ticket creado.
+    5. Cambiar estado a EN_ATENCION y asignar a tecnico1.
+    6. Logout. Login como tecnico1.
+    7. Verificar que el ticket aparece en /tecnico/bandeja columna
+       "En atención".
+    8. Click en la card, agregar comentario interno "Diagnóstico inicial".
+    9. Volver a bandeja, mover el ticket a "Resuelto" con confirmación.
+    10. Logout. Login como Pedro Sánchez.
+    11. /cliente/mis-tickets → abrir el ticket.
+  Esperado:
+    - Pedro ve estado RESUELTO.
+    - Pedro NO ve el comentario interno del técnico.
+    - Pedro ve toda la línea de tiempo del historial.
+
+CP-61  [ALTA]  Ranking se actualiza al resolver tickets
+  Pasos:
+    1. Antes: anotar "Resueltos" de tecnico1 en /admin/dashboard.
+    2. Hacer CP-60 completo (que el ticket termine RESUELTO).
+    3. Volver al dashboard y refrescar.
+  Esperado:  Contador de tecnico1 aumenta en 1.
+
+CP-62  [MED]  Persistencia tras reiniciar el back
+  Pasos:
+    1. Crear ticket, comentario, modificar SLA.
+    2. Detener back (Ctrl+C) y volver a levantar.
+    3. Refrescar el front.
+  Esperado:  Todo lo creado/modificado sigue ahí.
+
+================================================================================
+ REPORTE DE RESULTADOS (plantilla para entregar)
+================================================================================
+
+Total casos:           62
+Casos OK:              __
+Casos con bug:         __
+Bloqueantes (CRIT):    __
+Issues creados:        __
+
+Detalle de bugs:
+| CP-XX | Rol     | Pasos | Esperado | Obtenido | Severidad |
+|-------|---------|-------|----------|----------|-----------|
+
+Firmado por: ________________________   Fecha: ____________
+
+================================================================================

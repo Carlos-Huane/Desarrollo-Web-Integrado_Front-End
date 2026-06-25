@@ -50,3 +50,15 @@ button {
   &--baja         { background: v.$prio-baja; }
   &--sin_asignar  { background: v.$prio-sin-asignar; }
 }
+
+// ===== Responsive global: tablas con scroll horizontal en mobile =====
+@media (max-width: 768px) {
+  .tabla {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabla th, .tabla td { white-space: nowrap; }
+}
+

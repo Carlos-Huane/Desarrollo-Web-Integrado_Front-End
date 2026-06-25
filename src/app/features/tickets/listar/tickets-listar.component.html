@@ -1,0 +1,60 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Tickets</h1>
+      <p>{{ filtrados().length }} de {{ tickets().length }}</p>
+    </div>
+  </header>
+
+  <div class="filtros">
+    <input type="search" placeholder="Buscar por título o descripción…" (input)="onBuscar($any($event.target).value)" />
+
+    <select (change)="onFiltroEstado($any($event.target).value)">
+      <option value="">Todos los estados</option>
+      @for (e of estados; track e) { <option [value]="e">{{ e | estadoLabel }}</option> }
+    </select>
+
+    <select (change)="onFiltroPrioridad($any($event.target).value)">
+      <option value="">Todas las prioridades</option>
+      @for (p of prioridades; track p) { <option [value]="p">{{ p | prioridadLabel }}</option> }
+    </select>
+
+    <select (change)="onOrden($any($event.target).value)">
+      <option value="fecha-desc">Más recientes</option>
+      <option value="fecha-asc">Más antiguos</option>
+      <option value="prioridad">Por prioridad</option>
+    </select>
+  </div>
+
+  @if (cargando()) { <p class="placeholder">Cargando…</p> }
+  @else {
+    <table class="tabla">
+      <thead>
+        <tr><th>ID</th><th>Título</th><th>Cliente</th><th>Técnico</th><th>Prioridad</th><th>Estado</th><th>Creado</th></tr>
+      </thead>
+      <tbody>
+        @for (t of pagina$(); track t.id) {
+          <tr [routerLink]="['/admin/tickets', t.id]" class="clickable">
+            <td>#{{ t.id }}</td>
+            <td>{{ t.titulo }}</td>
+            <td>{{ t.cliente.nombre }} {{ t.cliente.apellido }}</td>
+            <td>{{ t.tecnico ? (t.tecnico.nombre + ' ' + t.tecnico.apellido) : '—' }}</td>
+            <td><span [class]="t.prioridad | badgeClass">{{ t.prioridad | prioridadLabel }}</span></td>
+            <td><span [class]="t.estado | badgeClass">{{ t.estado | estadoLabel }}</span></td>
+            <td>{{ t.createdAt | date:'short' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="placeholder">Sin resultados con esos filtros</td></tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalPaginas() > 1) {
+      <nav class="paginador">
+        <button type="button" (click)="irAPagina(pagina() - 1)" [disabled]="pagina() === 1">← Anterior</button>
+        <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+        <button type="button" (click)="irAPagina(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Siguiente →</button>
+      </nav>
+    }
+  }
+</section>

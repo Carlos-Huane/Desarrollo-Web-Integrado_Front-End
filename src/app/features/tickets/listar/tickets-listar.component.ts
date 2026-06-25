@@ -3,84 +3,91 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TicketService } from '../../../core/services/ticket.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 import { Ticket } from '../../../core/models/ticket.model';
 import { ESTADOS, Estado } from '../../../core/models/estado.enum';
 import { PRIORIDADES, Prioridad } from '../../../core/models/prioridad.enum';
+import { EstadoLabelPipe } from '../../../shared/pipes/estado-label.pipe';
+import { PrioridadLabelPipe } from '../../../shared/pipes/prioridad-label.pipe';
+import { BadgeClassPipe } from '../../../shared/pipes/badge-class.pipe';
+
+type Orden = 'fecha-desc' | 'fecha-asc' | 'prioridad';
 
 @Component({
   selector: 'app-tickets-listar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
-  template: `
-    <section class="page">
-      <h1>Tickets</h1>
-
-      <div class="filtros">
-        <select [(ngModel)]="filtroEstado">
-          <option value="">Todos los estados</option>
-          @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
-        </select>
-
-        <select [(ngModel)]="filtroPrioridad">
-          <option value="">Todas las prioridades</option>
-          @for (p of prioridades; track p) { <option [value]="p">{{ p }}</option> }
-        </select>
-      </div>
-
-      @if (cargando()) { <p class="placeholder">Cargando…</p> }
-      @else {
-        <table class="tabla">
-          <thead>
-            <tr><th>ID</th><th>Título</th><th>Cliente</th><th>Técnico</th><th>Prioridad</th><th>Estado</th><th>Creado</th></tr>
-          </thead>
-          <tbody>
-            @for (t of ticketsFiltrados(); track t.id) {
-              <tr [routerLink]="['/admin/tickets', t.id]" class="clickable">
-                <td>#{{ t.id }}</td>
-                <td>{{ t.titulo }}</td>
-                <td>{{ t.cliente.nombre }} {{ t.cliente.apellido }}</td>
-                <td>{{ t.tecnico ? (t.tecnico.nombre + ' ' + t.tecnico.apellido) : '—' }}</td>
-                <td><span class="badge" [ngClass]="'badge--' + t.prioridad.toLowerCase()">{{ t.prioridad }}</span></td>
-                <td><span class="badge" [ngClass]="'badge--' + t.estado.toLowerCase()">{{ t.estado }}</span></td>
-                <td>{{ t.createdAt | date:'short' }}</td>
-              </tr>
-            } @empty { <tr><td colspan="7" class="placeholder">Sin tickets</td></tr> }
-          </tbody>
-        </table>
-      }
-    </section>
-  `,
-  styles: [`
-    .page h1 { color: #1e3a8a; margin: 0 0 16px; }
-    .filtros { display: flex; gap: 10px; margin-bottom: 16px; }
-    .filtros select { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; background: #fff; }
-    .tabla { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-    .tabla th, .tabla td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-    .tabla th { background: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; }
-    .clickable { cursor: pointer; transition: background-color .1s; }
-    .clickable:hover { background: #f8fafc; }
-    .placeholder { color: #94a3b8; text-align: center; padding: 24px; }
-  `]
+  imports: [CommonModule, FormsModule, RouterLink, EstadoLabelPipe, PrioridadLabelPipe, BadgeClassPipe],
+  templateUrl: './tickets-listar.component.html',
+  styleUrl: './tickets-listar.component.scss'
 })
 export class TicketsListarComponent implements OnInit {
   private srv = inject(TicketService);
+  private notif = inject(NotificacionService);
 
   estados = ESTADOS;
   prioridades = PRIORIDADES;
+  private readonly prioOrden: Record<Prioridad, number> = {
+    CRITICA: 0, ALTA: 1, MEDIA: 2, BAJA: 3, SIN_ASIGNAR: 4
+  };
 
   tickets = signal<Ticket[]>([]);
   cargando = signal(true);
 
-  filtroEstado: '' | Estado = '';
-  filtroPrioridad: '' | Prioridad = '';
+  busqueda = signal('');
+  filtroEstado = signal<'' | Estado>('');
+  filtroPrioridad = signal<'' | Prioridad>('');
+  orden = signal<Orden>('fecha-desc');
 
-  ticketsFiltrados = computed(() =>
-    this.tickets()
-      .filter(t => !this.filtroEstado    || t.estado    === this.filtroEstado)
-      .filter(t => !this.filtroPrioridad || t.prioridad === this.filtroPrioridad)
-  );
+  pagina = signal(1);
+  readonly TAM_PAGINA = 15;
+
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  filtrados = computed(() => {
+    const q = this.busqueda().trim().toLowerCase();
+    const est = this.filtroEstado();
+    const pri = this.filtroPrioridad();
+    const ord = this.orden();
+
+    const filtrado = this.tickets()
+      .filter(t => !q
+        || t.titulo.toLowerCase().includes(q)
+        || t.descripcion.toLowerCase().includes(q))
+      .filter(t => !est || t.estado === est)
+      .filter(t => !pri || t.prioridad === pri);
+
+    return [...filtrado].sort((a, b) => {
+      if (ord === 'fecha-desc') return b.createdAt.localeCompare(a.createdAt);
+      if (ord === 'fecha-asc')  return a.createdAt.localeCompare(b.createdAt);
+      return this.prioOrden[a.prioridad] - this.prioOrden[b.prioridad];
+    });
+  });
+
+  totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtrados().length / this.TAM_PAGINA)));
+
+  pagina$ = computed(() => {
+    const inicio = (this.pagina() - 1) * this.TAM_PAGINA;
+    return this.filtrados().slice(inicio, inicio + this.TAM_PAGINA);
+  });
 
   ngOnInit(): void {
-    this.srv.listar().subscribe(t => { this.tickets.set(t); this.cargando.set(false); });
+    this.srv.listar().subscribe({
+      next: t => { this.tickets.set(t); this.cargando.set(false); },
+      error: () => { this.cargando.set(false); this.notif.error('No se pudo cargar tickets'); }
+    });
+  }
+
+  onBuscar(v: string): void {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => { this.busqueda.set(v); this.pagina.set(1); }, 300);
+  }
+
+  onFiltroEstado(v: string):    void { this.filtroEstado.set(v as '' | Estado);       this.pagina.set(1); }
+  onFiltroPrioridad(v: string): void { this.filtroPrioridad.set(v as '' | Prioridad); this.pagina.set(1); }
+  onOrden(v: string):           void { this.orden.set(v as Orden);                    this.pagina.set(1); }
+
+  irAPagina(n: number): void {
+    if (n < 1 || n > this.totalPaginas()) return;
+    this.pagina.set(n);
   }
 }

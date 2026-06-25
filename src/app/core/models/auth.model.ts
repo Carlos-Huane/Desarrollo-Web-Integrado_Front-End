@@ -6,6 +6,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
+  id: number;
   token: string;
   email: string;
   rol: Rol;
@@ -13,7 +14,7 @@ export interface LoginResponse {
 }
 
 export interface SesionUsuario {
-  id?: number;
+  id: number;
   email: string;
   rol: Rol;
   nombreCompleto: string;

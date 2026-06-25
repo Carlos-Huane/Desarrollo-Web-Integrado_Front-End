@@ -43,6 +43,30 @@ export class CategoriaService {
   }
 
   crearSubcategoria(req: SubcategoriaRequest): Observable<Subcategoria> {
-    return this.http.post<Subcategoria>(`${this.url}/subcategorias`, req);
+    // El back recibe la entidad Subcategoria con relación @ManyToOne `categoria`.
+    // Hay que mandar { categoria: { id } } en vez de categoriaId plano.
+    return this.http.post<Subcategoria>(`${this.url}/subcategorias`, {
+      nombre: req.nombre,
+      descripcion: req.descripcion,
+      activo: true,
+      categoria: { id: req.categoriaId }
+    });
+  }
+
+  actualizarSubcategoria(id: number, req: SubcategoriaRequest): Observable<Subcategoria> {
+    return this.http.put<Subcategoria>(`${this.url}/subcategorias/${id}`, {
+      nombre: req.nombre,
+      descripcion: req.descripcion,
+      activo: true,
+      categoria: { id: req.categoriaId }
+    });
+  }
+
+  activarSubcategoria(id: number): Observable<Subcategoria> {
+    return this.http.patch<Subcategoria>(`${this.url}/subcategorias/${id}/activar`, {});
+  }
+
+  desactivarSubcategoria(id: number): Observable<Subcategoria> {
+    return this.http.patch<Subcategoria>(`${this.url}/subcategorias/${id}/desactivar`, {});
   }
 }
