@@ -144,39 +144,38 @@ Foco: TECNICO + CLIENTE + SLA + UX transversal + flujos E2E integrales.
 
 | Caso | Módulo                  | Severidad | Resumen rápido                         |
 |------|-------------------------|-----------|----------------------------------------|
-| CP-32 | Tickets Admin          | CRIT      | Listar tickets                         |
-| CP-33 | Tickets Admin          | ALTA      | Filtros combinados                     |
-| CP-34 | Tickets Admin          | ALTA      | Búsqueda con debounce                  |
-| CP-35 | Tickets Admin          | ALTA      | Orden por prioridad                    |
-| CP-36 | Tickets Detalle        | CRIT      | Cabecera + meta + cards                |
-| CP-37 | Tickets Detalle        | CRIT      | Cambiar estado + asignar técnico       |
-| CP-38 | Tickets Detalle        | ALTA      | Comentario público                     |
-| CP-39 | Tickets Detalle        | ALTA      | Comentario interno                     |
-| CP-40 | Bandeja Técnico        | CRIT      | Kanban 3 columnas                      |
-| CP-41 | Bandeja Técnico        | ALTA      | Cambio rápido con confirmación         |
-| CP-42 | Bandeja Técnico        | ALTA      | Cerrar ticket desde RESUELTO           |
-| CP-43 | Bandeja Técnico        | MED       | Indicador SLA en riesgo                |
-| CP-44 | Bandeja Técnico        | ALTA      | Técnico NO ve selector de técnico      |
-| CP-45 | Bandeja Técnico        | MED       | Técnico puede comentar internamente    |
-| CP-46 | Mis Tickets Cliente    | CRIT      | Estado vacío y con tickets             |
-| CP-47 | Mis Tickets Cliente    | CRIT      | Crear ticket (form + subcategorías)    |
-| CP-48 | Mis Tickets Cliente    | ALTA      | Validaciones del form                  |
-| CP-49 | Mis Tickets Cliente    | CRIT      | Cliente NO ve form de cambio de estado |
-| CP-50 | Mis Tickets Cliente    | ALTA      | Cliente NO ve checkbox interno         |
-| CP-51 | Mis Tickets Cliente    | ALTA      | Cliente NO ve comentarios internos     |
-| CP-52 | SLA                    | CRIT      | Listar y editar SLA                    |
-| CP-53 | SLA                    | ALTA      | Respuesta > resolución no permitido    |
-| CP-54 | SLA                    | ALTA      | Valores ≤ 0 no permitidos              |
-| CP-55 | UX                     | ALTA      | Barra de carga global                  |
-| CP-56 | UX                     | ALTA      | Toast auto-cierre 4s                   |
-| CP-57 | UX                     | ALTA      | Sidebar colapsable < 1024px            |
-| CP-58 | UX                     | MED       | Móvil < 640px                          |
-| CP-59 | UX                     | ALTA      | Token JWT expirado/inválido            |
-| CP-60 | E2E integral           | CRIT      | Flujo completo: cliente → resolución   |
-| CP-61 | E2E integral           | ALTA      | Ranking se actualiza                   |
-| CP-62 | E2E integral           | MED       | Persistencia tras reiniciar back       |
-
-================================================================================
+| CP-32 | Tickets Admin          | CRIT      | Listar tickets                         |  --> ❌  -->✅
+| CP-33 | Tickets Admin          | ALTA      | Filtros combinados                     |  --> ❌  -->✅
+| CP-34 | Tickets Admin          | ALTA      | Búsqueda con debounce                  |  --> ❌  -->✅
+| CP-35 | Tickets Admin          | ALTA      | Orden por prioridad                    |  --> ❌  -->✅
+| CP-36 | Tickets Detalle        | CRIT      | Cabecera + meta + cards                |  --> ❌  -->✅
+| CP-37 | Tickets Detalle        | CRIT      | Cambiar estado + asignar técnico       |  --> ❌  -->✅
+| CP-38 | Tickets Detalle        | ALTA      | Comentario público                     |  --> ❌  -->✅
+| CP-39 | Tickets Detalle        | ALTA      | Comentario interno                     |  --> ❌  -->✅
+| CP-40 | Bandeja Técnico        | CRIT      | Kanban 3 columnas                      |  --> ❌  -->✅
+| CP-41 | Bandeja Técnico        | ALTA      | Cambio rápido con confirmación         |  --> ❌  -->✅
+| CP-42 | Bandeja Técnico        | ALTA      | Cerrar ticket desde RESUELTO           |  --> ❌  -->✅
+| CP-43 | Bandeja Técnico        | MED       | Indicador SLA en riesgo                |  --> ❌  -->✅
+| CP-44 | Bandeja Técnico        | ALTA      | Técnico NO ve selector de técnico      |  --> ❌  -->✅
+| CP-45 | Bandeja Técnico        | MED       | Técnico puede comentar internamente    |  --> ❌  -->✅
+| CP-46 | Mis Tickets Cliente    | CRIT      | Estado vacío y con tickets             |  --> ❌  -->✅
+| CP-47 | Mis Tickets Cliente    | CRIT      | Crear ticket (form + subcategorías)    |  --> ❌  -->✅
+| CP-48 | Mis Tickets Cliente    | ALTA      | Validaciones del form                  |  --> ❌  -->✅
+| CP-49 | Mis Tickets Cliente    | CRIT      | Cliente NO ve form de cambio de estado |  --> ❌  -->✅
+| CP-50 | Mis Tickets Cliente    | ALTA      | Cliente NO ve checkbox interno         |  --> ❌  -->✅
+| CP-51 | Mis Tickets Cliente    | ALTA      | Cliente NO ve comentarios internos     |  --> ❌  -->✅
+| CP-52 | SLA                    | CRIT      | Listar y editar SLA                    |  --> ❌  -->✅
+| CP-53 | SLA                    | ALTA      | Respuesta > resolución no permitido    |  --> ❌  -->✅
+| CP-54 | SLA                    | ALTA      | Valores ≤ 0 no permitidos              |  --> ❌  -->✅
+| CP-55 | UX                     | ALTA      | Barra de carga global                  |  --> ❌  -->✅
+| CP-56 | UX                     | ALTA      | Toast auto-cierre 4s                   |  --> ❌  -->✅
+| CP-57 | UX                     | ALTA      | Sidebar colapsable < 1024px            |  --> ❌  -->✅
+| CP-58 | UX                     | MED       | Móvil < 640px                          |  --> ❌  -->✅
+| CP-59 | UX                     | ALTA      | Token JWT expirado/inválido            |  --> ❌  -->✅
+| CP-60 | E2E integral           | CRIT      | Flujo completo: cliente → resolución   |  --> ❌  -->✅
+| CP-61 | E2E integral           | ALTA      | Ranking se actualiza                   |  --> ❌  -->✅
+| CP-62 | E2E integral           | MED       | Persistencia tras reiniciar back       |  --> ❌  -->✅
+================================================================================ 
  CÓMO REPORTAR UN BUG
 ================================================================================
 
