@@ -28,8 +28,8 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
             <h1>{{ t.titulo }}</h1>
           </div>
           <div class="head__chips">
-            <span class="badge" [ngClass]="'badge--' + t.estado.toLowerCase()">{{ t.estado }}</span>
-            <span class="badge" [ngClass]="'badge--' + t.prioridad.toLowerCase()">{{ t.prioridad }}</span>
+            <span [class]="t.estado | badgeClass">{{ t.estado | estadoLabel }}</span>
+            <span [class]="t.prioridad | badgeClass">{{ t.prioridad | prioridadLabel }}</span>
           </div>
         </header>
 
