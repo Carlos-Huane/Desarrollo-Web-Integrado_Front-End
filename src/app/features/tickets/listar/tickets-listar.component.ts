@@ -59,7 +59,7 @@ export class TicketsListarComponent implements OnInit {
     return [...filtrado].sort((a, b) => {
       if (ord === 'fecha-desc') return b.createdAt.localeCompare(a.createdAt);
       if (ord === 'fecha-asc')  return a.createdAt.localeCompare(b.createdAt);
-      return this.prioOrden[a.prioridad] - this.prioOrden[b.prioridad];
+      return this.prioridadOrden(a) - this.prioridadOrden(b);
     });
   });
 
@@ -80,6 +80,10 @@ export class TicketsListarComponent implements OnInit {
   onBuscar(v: string): void {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => { this.busqueda.set(v); this.pagina.set(1); }, 300);
+  }
+
+  private prioridadOrden(ticket: Ticket): number {
+    return this.prioOrden[ticket.prioridad] ?? Number.MAX_SAFE_INTEGER;
   }
 
   onFiltroEstado(v: string):    void { this.filtroEstado.set(v as '' | Estado);       this.pagina.set(1); }
