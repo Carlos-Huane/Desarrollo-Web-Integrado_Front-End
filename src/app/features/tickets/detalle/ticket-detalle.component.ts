@@ -300,7 +300,11 @@ export class TicketDetalleComponent implements OnInit {
       next: tk => {
         this.ticket.set(tk);
         this.srv.historial(tk.id).subscribe(h => this.historial.set(h));
-        this.form.patchValue({ comentario: '' });
+        this.form.patchValue({
+          estadoNuevo: tk.estado,
+          tecnicoId: tk.tecnico?.id ?? null,
+          comentario: ''
+        });
         this.notif.success('Cambio aplicado');
         this.guardando.set(false);
       },
