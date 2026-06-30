@@ -40,6 +40,11 @@ import { SlaConfig } from '../../core/models/sla.model';
                   </button>
                 </td>
               </tr>
+              @if (!esValido(s)) {
+                <tr class="fila-error">
+                  <td colspan="5">{{ obtenerError(s) }}</td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -55,6 +60,7 @@ import { SlaConfig } from '../../core/models/sla.model';
     .tabla th { background: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; }
     .tabla tr.invalido { background: #fef2f2; }
     .tabla tr.guardando { opacity: 0.7; }
+    .fila-error td { padding: 10px 14px; background: #fee2e2; color: #991b1b; font-size: 13px; border-bottom: 1px solid #fecaca; }
     input { padding: 7px 9px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
     button {
       padding: 7px 14px; background: #1e40af; color: #fff; border: none; border-radius: 6px;
@@ -86,11 +92,24 @@ export class SlaComponent implements OnInit {
     });
   }
 
+  obtenerError(s: SlaConfig): string | null {
+    if (s.tiempoRespuestaHoras == null || s.tiempoRespuestaHoras <= 0) {
+      return 'El tiempo de respuesta debe ser al menos 1 hora.';
+    }
+    if (s.tiempoResolucionHoras == null || s.tiempoResolucionHoras <= 0) {
+      return 'El tiempo de resolución debe ser al menos 1 hora.';
+    }
+    if (s.tiempoRespuestaHoras > s.tiempoResolucionHoras) {
+      return 'La respuesta no puede ser mayor que la resolución.';
+    }
+    if (!s.descripcion?.trim()) {
+      return 'La descripción no puede estar vacía.';
+    }
+    return null;
+  }
+
   esValido(s: SlaConfig): boolean {
-    return s.tiempoRespuestaHoras > 0
-        && s.tiempoResolucionHoras > 0
-        && s.tiempoRespuestaHoras <= s.tiempoResolucionHoras
-        && !!s.descripcion?.trim();
+    return this.obtenerError(s) === null;
   }
 
   esModificado(s: SlaConfig): boolean {
