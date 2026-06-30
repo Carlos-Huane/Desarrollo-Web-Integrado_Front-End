@@ -28,8 +28,8 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
             <h1>{{ t.titulo }}</h1>
           </div>
           <div class="head__chips">
-            <span class="badge" [ngClass]="'badge--' + t.estado.toLowerCase()">{{ t.estado }}</span>
-            <span class="badge" [ngClass]="'badge--' + t.prioridad.toLowerCase()">{{ t.prioridad }}</span>
+            <span [class]="t.estado | badgeClass">{{ t.estado | estadoLabel }}</span>
+            <span [class]="t.prioridad | badgeClass">{{ t.prioridad | prioridadLabel }}</span>
           </div>
         </header>
 
@@ -231,6 +231,10 @@ export class TicketDetalleComponent implements OnInit {
     return r === 'ADMIN' || r === 'TECNICO';
   }
 
+  esCliente(): boolean {
+    return this.auth.rol() === 'CLIENTE';
+  }
+
   puedeComentarInterno(): boolean {
     const r = this.auth.rol();
     return r === 'ADMIN' || r === 'TECNICO';
@@ -300,7 +304,11 @@ export class TicketDetalleComponent implements OnInit {
       next: tk => {
         this.ticket.set(tk);
         this.srv.historial(tk.id).subscribe(h => this.historial.set(h));
-        this.form.patchValue({ comentario: '' });
+        this.form.patchValue({
+          estadoNuevo: tk.estado,
+          tecnicoId: tk.tecnico?.id ?? null,
+          comentario: ''
+        });
         this.notif.success('Cambio aplicado');
         this.guardando.set(false);
       },
