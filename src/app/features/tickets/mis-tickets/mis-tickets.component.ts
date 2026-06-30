@@ -4,11 +4,14 @@ import { RouterLink } from '@angular/router';
 import { TicketService } from '../../../core/services/ticket.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Ticket } from '../../../core/models/ticket.model';
+import { EstadoLabelPipe } from '../../../shared/pipes/estado-label.pipe';
+import { PrioridadLabelPipe } from '../../../shared/pipes/prioridad-label.pipe';
+import { BadgeClassPipe } from '../../../shared/pipes/badge-class.pipe';
 
 @Component({
   selector: 'app-mis-tickets',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, EstadoLabelPipe, PrioridadLabelPipe, BadgeClassPipe],
   template: `
     <section class="page">
       <header class="head">
@@ -30,8 +33,8 @@ import { Ticket } from '../../../core/models/ticket.model';
               <header>
                 <strong>#{{ t.id }} · {{ t.titulo }}</strong>
                 <div class="chips">
-                  <span class="badge" [ngClass]="'badge--' + t.prioridad.toLowerCase()">{{ t.prioridad }}</span>
-                  <span class="badge" [ngClass]="'badge--' + t.estado.toLowerCase()">{{ t.estado }}</span>
+                  <span [class]="t.prioridad | badgeClass">{{ t.prioridad | prioridadLabel }}</span>
+                  <span [class]="t.estado | badgeClass">{{ t.estado | estadoLabel }}</span>
                 </div>
               </header>
               <p>{{ t.descripcion }}</p>

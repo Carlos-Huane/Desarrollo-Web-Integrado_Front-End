@@ -28,18 +28,23 @@ import { SlaConfig } from '../../core/models/sla.model';
           </thead>
           <tbody>
             @for (s of items(); track s.id) {
-              <tr [class.invalido]="!esValido(s)">
+              <tr [class.invalido]="!esValido(s)" [class.guardando]="guardandoId() === s.id">
                 <td><strong>{{ s.prioridad }}</strong></td>
-                <td><input type="number" min="1" [(ngModel)]="s.tiempoRespuestaHoras" /></td>
-                <td><input type="number" min="1" [(ngModel)]="s.tiempoResolucionHoras" /></td>
-                <td><input type="text" [(ngModel)]="s.descripcion" /></td>
+                <td><input type="number" min="1" [(ngModel)]="s.tiempoRespuestaHoras" [disabled]="guardandoId() === s.id" /></td>
+                <td><input type="number" min="1" [(ngModel)]="s.tiempoResolucionHoras" [disabled]="guardandoId() === s.id" /></td>
+                <td><input type="text" [(ngModel)]="s.descripcion" [disabled]="guardandoId() === s.id" /></td>
                 <td>
                   <button (click)="guardar(s)"
-                          [disabled]="!esValido(s) || guardandoId() === s.id">
-                    {{ guardandoId() === s.id ? '…' : 'Guardar' }}
+                          [disabled]="!esValido(s) || !esModificado(s) || guardandoId() === s.id">
+                    {{ guardandoId() === s.id ? 'Guardando…' : (esModificado(s) ? 'Guardar' : 'Sin cambios') }}
                   </button>
                 </td>
               </tr>
+              @if (!esValido(s)) {
+                <tr class="fila-error">
+                  <td colspan="5">{{ obtenerError(s) }}</td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -54,6 +59,8 @@ import { SlaConfig } from '../../core/models/sla.model';
     .tabla th, .tabla td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; vertical-align: middle; }
     .tabla th { background: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; }
     .tabla tr.invalido { background: #fef2f2; }
+    .tabla tr.guardando { opacity: 0.7; }
+    .fila-error td { padding: 10px 14px; background: #fee2e2; color: #991b1b; font-size: 13px; border-bottom: 1px solid #fecaca; }
     input { padding: 7px 9px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
     button {
       padding: 7px 14px; background: #1e40af; color: #fff; border: none; border-radius: 6px;
@@ -71,18 +78,46 @@ export class SlaComponent implements OnInit {
   items = signal<SlaConfig[]>([]);
   cargando = signal(true);
   guardandoId = signal<number | null>(null);
+  private originalItems = new Map<number, SlaConfig>();
 
   ngOnInit(): void {
     this.srv.listar().subscribe({
-      next: i => { this.items.set(i); this.cargando.set(false); },
+      next: i => {
+        this.items.set(i);
+        this.originalItems.clear();
+        i.forEach(s => this.originalItems.set(s.id, { ...s }));
+        this.cargando.set(false);
+      },
       error: () => { this.cargando.set(false); this.notif.error('No se pudo cargar la configuración'); }
     });
   }
 
+  obtenerError(s: SlaConfig): string | null {
+    if (s.tiempoRespuestaHoras == null || s.tiempoRespuestaHoras <= 0) {
+      return 'El tiempo de respuesta debe ser al menos 1 hora.';
+    }
+    if (s.tiempoResolucionHoras == null || s.tiempoResolucionHoras <= 0) {
+      return 'El tiempo de resolución debe ser al menos 1 hora.';
+    }
+    if (s.tiempoRespuestaHoras > s.tiempoResolucionHoras) {
+      return 'La respuesta no puede ser mayor que la resolución.';
+    }
+    if (!s.descripcion?.trim()) {
+      return 'La descripción no puede estar vacía.';
+    }
+    return null;
+  }
+
   esValido(s: SlaConfig): boolean {
-    return s.tiempoRespuestaHoras > 0
-        && s.tiempoResolucionHoras > 0
-        && s.tiempoRespuestaHoras <= s.tiempoResolucionHoras;
+    return this.obtenerError(s) === null;
+  }
+
+  esModificado(s: SlaConfig): boolean {
+    const original = this.originalItems.get(s.id);
+    if (!original) return true;
+    return original.tiempoRespuestaHoras !== s.tiempoRespuestaHoras
+        || original.tiempoResolucionHoras !== s.tiempoResolucionHoras
+        || (original.descripcion ?? '') !== (s.descripcion ?? '');
   }
 
   guardar(s: SlaConfig): void {
@@ -90,13 +125,22 @@ export class SlaComponent implements OnInit {
       this.notif.warning('Revisa los valores antes de guardar');
       return;
     }
+    if (!this.esModificado(s)) {
+      this.notif.info('No hay cambios para guardar');
+      return;
+    }
+
     this.guardandoId.set(s.id);
     this.srv.actualizar(s.id, {
       tiempoRespuestaHoras: s.tiempoRespuestaHoras,
       tiempoResolucionHoras: s.tiempoResolucionHoras,
       descripcion: s.descripcion
     }).subscribe({
-      next: () => { this.guardandoId.set(null); this.notif.success(`SLA de ${s.prioridad} actualizado`); },
+      next: () => {
+        this.originalItems.set(s.id, { ...s });
+        this.guardandoId.set(null);
+        this.notif.success(`SLA de ${s.prioridad} actualizado`);
+      },
       error: () => { this.guardandoId.set(null); this.notif.error('No se pudo guardar'); }
     });
   }

@@ -28,8 +28,8 @@ import { ESTADOS, Estado } from '../../../core/models/estado.enum';
             <h1>{{ t.titulo }}</h1>
           </div>
           <div class="head__chips">
-            <span class="badge" [ngClass]="'badge--' + t.estado.toLowerCase()">{{ t.estado }}</span>
-            <span class="badge" [ngClass]="'badge--' + t.prioridad.toLowerCase()">{{ t.prioridad }}</span>
+            <span [class]="t.estado | badgeClass">{{ t.estado | estadoLabel }}</span>
+            <span [class]="t.prioridad | badgeClass">{{ t.prioridad | prioridadLabel }}</span>
           </div>
         </header>
 
@@ -240,16 +240,26 @@ export class TicketDetalleComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     const incluirInternos = this.puedeComentarInterno();
 
-    forkJoin({
+    const requests: {
+      t: ReturnType<TicketService['porId']>;
+      h: ReturnType<TicketService['historial']>;
+      com: ReturnType<ComentarioService['porTicket']>;
+      tec?: ReturnType<UsuarioService['listarTecnicos']>;
+    } = {
       t: this.srv.porId(id),
       h: this.srv.historial(id),
-      tec: this.usrSrv.listarTecnicos(),
       com: this.comentarioSrv.porTicket(id, incluirInternos)
-    }).subscribe({
+    };
+
+    if (this.puedeAsignar()) {
+      requests.tec = this.usrSrv.listarTecnicos();
+    }
+
+    forkJoin(requests).subscribe({
       next: ({ t, h, tec, com }) => {
         this.ticket.set(t);
         this.historial.set(h);
-        this.tecnicos.set(tec);
+        this.tecnicos.set(tec ?? []);
         this.comentarios.set(com);
         this.form.patchValue({
           estadoNuevo: t.estado,
@@ -300,7 +310,11 @@ export class TicketDetalleComponent implements OnInit {
       next: tk => {
         this.ticket.set(tk);
         this.srv.historial(tk.id).subscribe(h => this.historial.set(h));
-        this.form.patchValue({ comentario: '' });
+        this.form.patchValue({
+          estadoNuevo: tk.estado,
+          tecnicoId: tk.tecnico?.id ?? null,
+          comentario: ''
+        });
         this.notif.success('Cambio aplicado');
         this.guardando.set(false);
       },
