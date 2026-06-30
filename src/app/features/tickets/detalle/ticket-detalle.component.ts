@@ -231,6 +231,10 @@ export class TicketDetalleComponent implements OnInit {
     return r === 'ADMIN' || r === 'TECNICO';
   }
 
+  esCliente(): boolean {
+    return this.auth.rol() === 'CLIENTE';
+  }
+
   puedeComentarInterno(): boolean {
     const r = this.auth.rol();
     return r === 'ADMIN' || r === 'TECNICO';
