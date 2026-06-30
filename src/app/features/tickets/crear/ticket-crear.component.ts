@@ -192,14 +192,27 @@ export class TicketCrearComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.catSrv.listarActivas().subscribe(c => this.categorias.set(c));
+    this.catSrv.listarActivas().subscribe({
+      next: c => this.categorias.set(c),
+      error: () => {
+        this.notif.error('No se pudieron cargar las categorías');
+      }
+    });
   }
 
   onCategoriaChange(): void {
     const id = this.form.controls.categoriaId.value;
     this.form.patchValue({ subcategoriaId: null });
-    if (!id) { this.subcategorias.set([]); return; }
-    this.catSrv.subcategoriasPorCategoria(id).subscribe(s => this.subcategorias.set(s));
+    this.subcategorias.set([]);
+    if (!id) { return; }
+
+    this.catSrv.subcategoriasPorCategoria(id).subscribe({
+      next: s => this.subcategorias.set(s),
+      error: () => {
+        this.subcategorias.set([]);
+        this.notif.error('No se pudieron cargar las subcategorías');
+      }
+    });
   }
 
   enviar(): void {
