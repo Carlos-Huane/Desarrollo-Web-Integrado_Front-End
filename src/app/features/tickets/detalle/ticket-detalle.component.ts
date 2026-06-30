@@ -240,16 +240,26 @@ export class TicketDetalleComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     const incluirInternos = this.puedeComentarInterno();
 
-    forkJoin({
+    const requests: {
+      t: ReturnType<TicketService['porId']>;
+      h: ReturnType<TicketService['historial']>;
+      com: ReturnType<ComentarioService['porTicket']>;
+      tec?: ReturnType<UsuarioService['listarTecnicos']>;
+    } = {
       t: this.srv.porId(id),
       h: this.srv.historial(id),
-      tec: this.usrSrv.listarTecnicos(),
       com: this.comentarioSrv.porTicket(id, incluirInternos)
-    }).subscribe({
+    };
+
+    if (this.puedeAsignar()) {
+      requests.tec = this.usrSrv.listarTecnicos();
+    }
+
+    forkJoin(requests).subscribe({
       next: ({ t, h, tec, com }) => {
         this.ticket.set(t);
         this.historial.set(h);
-        this.tecnicos.set(tec);
+        this.tecnicos.set(tec ?? []);
         this.comentarios.set(com);
         this.form.patchValue({
           estadoNuevo: t.estado,
