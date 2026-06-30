@@ -171,15 +171,15 @@ Foco: TECNICO + CLIENTE + SLA + UX transversal + flujos E2E integrales.
 | CP-53 | SLA                    | ALTA      | Respuesta > resolución no permitido    |  --> ✅  -->Se implementó validación de errores en tiempo real por cada fila de SLA. El sistema ahora detecta automáticamente                                                                                                             valores inválidos (≤ 0), inconsistencias en tiempos (respuesta > resolución) y descripciones vacías, proporcionando                                                                                                           feedback visual inmediato mediante mensajes de error y estilos destacados. El botón de guardado permanece bloqueado                                                                                                           hasta asegurar la integridad de los datos, mejorando drásticamente la experiencia de edición.
 | CP-54 | SLA                    | ALTA      | Valores ≤ 0 no permitidos              |  --> ✅  -->ningun error 
 
-| CP-55 | UX                     | ALTA      | Barra de carga global                  |  --> ❌  -->✅
-| CP-56 | UX                     | ALTA      | Toast auto-cierre 4s                   |  --> ❌  -->✅
-| CP-57 | UX                     | ALTA      | Sidebar colapsable < 1024px            |  --> ❌  -->✅
-| CP-58 | UX                     | MED       | Móvil < 640px                          |  --> ❌  -->✅
-| CP-59 | UX                     | ALTA      | Token JWT expirado/inválido            |  --> ❌  -->✅
+| CP-55 | UX                     | ALTA      | Barra de carga global                  |  --> ✅  -->ningun error 
+| CP-56 | UX                     | ALTA      | Toast auto-cierre 4s                   |  --> ✅  -->ningun error 
+| CP-57 | UX                     | ALTA      | Sidebar colapsable < 1024px            |  --> ✅  -->ningun error
+| CP-58 | UX                     | MED       | Móvil < 640px                          |  --> ✅  -->ningun error
+| CP-59 | UX                     | ALTA      | Token JWT expirado/inválido            |  --> ✅  -->ningun error
 
-| CP-60 | E2E integral           | CRIT      | Flujo completo: cliente → resolución   |  --> ❌  -->✅
-| CP-61 | E2E integral           | ALTA      | Ranking se actualiza                   |  --> ❌  -->✅
-| CP-62 | E2E integral           | MED       | Persistencia tras reiniciar back       |  --> ❌  -->✅
+| CP-60 | E2E integral           | CRIT      | Flujo completo: cliente → resolución   |  --> ✅  -->ningun error
+| CP-61 | E2E integral           | ALTA      | Ranking se actualiza                   |  --> ✅  -->ningun error
+| CP-62 | E2E integral           | MED       | Persistencia tras reiniciar back       |  --> ✅  -->ningun error
 ================================================================================ 
  CÓMO REPORTAR UN BUG
 ================================================================================
